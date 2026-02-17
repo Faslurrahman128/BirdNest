@@ -1,0 +1,9 @@
+const express = require("express");
+const router = express.Router();
+const { getFeedbacks, respondFeedback } = require("../controllers/CustomerCareController");
+const customerCareAuth = require("../middlewares/customerCareAuth");
+
+router.get("/customer-care/feedbacks", customerCareAuth, getFeedbacks);
+router.put("/customer-care/feedbacks/respond/:id", customerCareAuth, respondFeedback);
+
+module.exports = router;

@@ -1,0 +1,136 @@
+/* Container styling */
+.Postadd-container-body {
+  background: linear-gradient(to bottom, #f8f9fa, #dee2e6);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1rem;
+}
+
+.Postadd-container {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  max-width: 900px;
+  width: 100%;
+  animation: fadeIn 0.8s ease-out;
+}
+
+/* Section styling */
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 1rem;
+  border-left: 4px solid #007bff;
+  padding-left: 0.75rem;
+}
+
+.section-text {
+  font-size: 1.05rem;
+  color: #495057;
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+}
+
+/* Step card styling */
+.step-card {
+  background: #f1f3f5;
+  border-radius: 10px;
+  padding: 1.5rem;
+  height: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 5px solid #007bff;
+  position: relative;
+  overflow: hidden;
+}
+
+.step-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.1);
+}
+
+.step-number {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 50px;
+  height: 50px;
+  background: #007bff;
+  color: #ffffff;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 0.5rem;
+}
+
+.step-text {
+  font-size: 1rem;
+  color: #495057;
+  line-height: 1.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .Postadd-container {
+    padding: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .step-title {
+    font-size: 1.15rem;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .Postadd-container {
+    padding: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.35rem;
+  }
+
+  .step-title {
+    font-size: 1rem;
+  }
+
+  .step-text {
+    font-size: 0.95rem;
+  }
+}
+
+/* Smooth entrance animation */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
