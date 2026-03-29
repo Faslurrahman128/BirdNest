@@ -1,0 +1,36 @@
+/* RegisterServiceProvider.css */
+
+.Register-container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.sub-topic{
+  text-align: center;
+
+}
+
+h2 {
+  color: #333;
+}
+
+p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.form-label {
+  font-weight: bold;
+}
+
+.form-control {
+  border-radius: 5px;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+

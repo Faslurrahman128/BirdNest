@@ -1,0 +1,73 @@
+.admin-glass-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+  background: linear-gradient(90deg, #232946 0%, #1a237e 100%);
+  border-radius: 0 0 40px 40px;
+  /* Both bottom corners rounded - more curve */
+  padding: 0.7rem 0.7rem 0.7rem 0.7rem;
+  /* Reduced horizontal padding */
+  box-shadow: 0 2px 12px rgba(30, 40, 80, 0.13);
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+.admin-glass-header-left {
+  display: flex;
+  justify-content: flex-start;
+}
+.admin-glass-header-content-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0;
+  max-width: none;
+}
+.admin-glass-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  margin-right: 1rem;
+  object-fit: contain;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.10);
+}
+.admin-glass-header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+.admin-glass-app-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f4f4f4;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 4px rgba(20, 20, 40, 0.18);
+}
+.admin-glass-tagline {
+  font-size: 0.7rem;
+  color: #b7cbe6;
+  margin-top: 0.05rem;
+  font-family: 'Segoe Script', 'Pacifico', 'Dancing Script', 'Caveat', cursive, sans-serif;
+  font-style: italic;
+  text-shadow: 0 1px 4px rgba(20, 20, 40, 0.13);
+}
+@media (max-width: 600px) {
+  .admin-glass-header-content-left {
+    padding: 0 0.5rem;
+  }
+  .admin-glass-header-title {
+    gap: 0.02rem;
+  }
+  .admin-glass-app-name {
+    font-size: 1.1rem;
+  }
+  .admin-glass-tagline {
+    font-size: 0.65rem;
+    margin-top: 0.01rem;
+    font-family: 'Segoe Script', 'Pacifico', 'Dancing Script', 'Caveat', cursive, sans-serif;
+    font-style: italic;
+    text-shadow: 0 1px 4px rgba(20, 20, 40, 0.13);
+  }
+}
