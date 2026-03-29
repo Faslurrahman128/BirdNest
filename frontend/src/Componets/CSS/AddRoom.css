@@ -1,0 +1,114 @@
+/* Main container styling */
+.Postadd-container-body{
+  background-color: #F0F0F0;
+  padding-top: 1%;
+  padding-bottom: 2%;
+
+}
+
+.Postadd-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+ 
+  
+}
+
+/* Heading styles */
+.Postadd-container h2 {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.Postadd-container p {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+}
+
+/* Input and textarea styles */
+.Postadd-container .form-control {
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 0.9rem;
+  padding: 10px;
+}
+
+.Postadd-container .form-control:focus {
+  border-color: #0e0f0f;
+  box-shadow: 0 0 5px rgba(14, 14, 14, 0.5);
+}
+
+/* Label styles */
+.Postadd-container .form-label {
+  font-weight: 500;
+  color: #444;
+}
+
+/* Button styles */
+.Postadd-container .btn-primary {
+  background-color:  #060606;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.Postadd-container .btn-primary:hover {
+  background-color:  #212222;
+}
+
+/* Image preview */
+.Postadd-container .mt-2 img {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+/* Remove button for images */
+.Postadd-container .btn-danger {
+  margin-left: 10px;
+  font-size: 0.85rem;
+}
+
+/* Radio button labels */
+.Postadd-container input[type="radio"] + label {
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.Postadd-container input[type="radio"] {
+  margin-right: 5px;
+}
+
+/* Row margin adjustments */
+.Postadd-container .row {
+  margin-bottom: 15px; /* Adds spacing between rows */
+}
+
+/* Form submit button */
+.Postadd-container button[type="submit"] {
+  margin-top: 20px;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+  .Postadd-container {
+    padding: 20px;
+  }
+
+  .Postadd-container .btn-primary {
+    font-size: 0.9rem;
+  }
+}

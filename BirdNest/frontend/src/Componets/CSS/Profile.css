@@ -1,0 +1,201 @@
+/* Profile.css */
+.body{
+  background-color: #d5d5d5;
+  height: 100%, !important;
+}
+
+/* General styles for the customer profile page */
+.LoggedCustomer-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 3%;
+  margin-left: 25%;
+  margin-right: 15%;
+}
+.icon{
+  margin-left: 435px;
+}
+.customer-details-container,
+.my-rooms-container {
+  width: 85%; /* Slightly reduce width to give more balanced spacing */
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px  rgba(8, 8, 8, 0.618); /* Subtle shadow for better separation */
+}
+.CustomerBox{
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+  transition: box-shadow 0.3s ease;
+}
+
+.CustomerForm{
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.customer-details-container h2,
+.my-rooms-container h2 {
+  font-size: 35px;
+  color: #040404;
+  font-weight: bold;
+  margin-bottom: 4%;
+  text-align: center; /* Align text to the left */
+  margin-top: 2%;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #555;
+}
+
+button {
+  margin-top: 15px;
+}
+
+
+
+.room-card {
+  border: 1px solid #e0e0e0;
+  padding: 18px;
+  border-radius: 8px;
+  margin: 25px;
+  background-color: #f9f9f9;
+  transition: box-shadow 0.3s ease;
+}
+
+.room-card h3 {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.room-card p {
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #666;
+}
+
+.room-card button {
+  margin-right: 12px;
+  font-size: 14px;
+}
+
+.room-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.update-room-form {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.update-room-form h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.update-room-form .form-label {
+  font-weight: 500;
+  color: #555;
+}
+
+.update-room-form button {
+  margin-top: 15px;
+  background-color:  #0d0e0d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.update-room-form button:hover {
+  background-color: #0056b3;
+}
+
+/* Reduce gap between customer and room forms */
+.customer-details-container{
+  margin-bottom: 25px; /* Slightly more space between sections */
+}
+
+.my-rooms-container {
+  max-height: none; /* Allow the container to expand */
+  overflow: visible; /* Prevent scrollbars unless explicitly needed */
+  margin-bottom: 25px;
+}
+
+.LoggedCustomer-container {
+  flex-wrap: wrap; /* Allow items to stack as needed */
+  align-items: flex-start; /* Prevent uneven alignment */
+}
+
+
+.carousel-slide{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 75%;
+  margin-right: 0px;
+}
+.carousel-slide2{
+  display: flex;
+  width: 700px;
+  justify-content: center;
+  align-items: center;
+  margin-left: 17%;
+}
+
+.ratingbtn{
+  margin-left: 100px;
+  max-height: 50px;
+}
+
+.image{
+  margin-left: 200px;
+  margin-bottom: 20px;
+}
+
+.imagethumbnail{
+  margin-left: 40%;
+}
+
+
+
+
+.dowloadtext{
+ color: red;
+}
+/* Responsive styles */
+@media (max-width: 768px) {
+  .LoggedCustomer-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .customer-details-container,
+  .my-rooms-container {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .room-card {
+    padding: 15px;
+  }
+
+  .update-room-form {
+    padding: 15px;
+  }
+}

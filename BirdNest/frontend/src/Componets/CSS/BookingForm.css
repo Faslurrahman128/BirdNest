@@ -1,0 +1,21 @@
+/* BookForm.css */
+
+.billing-container {
+    margin: 15px auto;
+    max-width: 90%;
+  }
+  
+  
+  .card {
+    border-radius: 10px;
+    border: none;
+  }
+  
+  .card h5, .card h6, .card p {
+    margin-bottom: 10px;
+  }
+  
+  
+  
+ 
+  

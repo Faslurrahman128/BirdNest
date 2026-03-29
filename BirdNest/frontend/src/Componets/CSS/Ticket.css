@@ -1,0 +1,76 @@
+/* RaiseTicket.css */
+ 
+ /* General styling */
+ body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+  }
+  
+ 
+  
+  .navbar .nav-link {
+    color: #ffffff;
+    font-weight: bold;
+    transition: color 0.3s;
+  }
+  
+  .navbar .nav-link:hover {
+    color: #ffc107;
+  }
+  
+  .LOGO-container img {
+    max-height: 50px;
+  }
+  
+  /* Main container */
+  .RaiseTicket-container {
+    max-width: 600px;
+    background: #ffffff;
+    padding: 20px;
+    margin: 40px auto;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  .RaiseTicket-container h2 {
+    text-align: center;
+    color: #343a40;
+    margin-bottom: 20px;
+  }
+  
+  /* Form styling */
+  .form-label {
+    font-weight: bold;
+  }
+  
+  .form-control {
+    border-radius: 5px;
+    padding: 10px;
+    border: 1px solid #ced4da;
+  }
+  
+  .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
+  
+  /* File attachment styling */
+  .d-flex.align-items-center {
+    display: flex;
+    justify-content: space-between;
+    background: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+  }
+  
+  .btn-danger.btn-sm {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+  
+
+  
+ 

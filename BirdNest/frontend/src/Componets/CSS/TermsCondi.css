@@ -1,0 +1,63 @@
+/* Container styling to match AddRoom.js */
+.Postadd-container-body {
+    background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+  }
+  
+  .Postadd-container {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    max-width: 800px;
+    width: 100%;
+    margin: 0 1rem;
+  }
+  
+  /* Section styling */
+  .section {
+    margin-bottom: 2rem;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 0.75rem;
+  }
+  
+  .section-text {
+    font-size: 1rem;
+    color: #6c757d;
+    line-height: 1.6;
+  }
+  
+  
+  @media (max-width: 576px) {
+    .Postadd-container {
+      padding: 1rem;
+    }
+  
+    .section-title {
+      font-size: 1.2rem;
+    }
+  }
+  
+  /* Smooth entrance animation */
+  .Postadd-container {
+    animation: fadeIn 0.8s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }

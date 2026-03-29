@@ -1,0 +1,128 @@
+/* Sidebar Styles */
+.sidebar {
+  background-color: #003087; /* Dark blue */
+  color: white;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  padding-top: 20px;
+}
+
+.sidebar-sticky {
+  position: relative;
+  top: 0;
+  height: calc(100vh - 20px);
+  padding-top: 0.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.nav-link {
+  color: white !important;
+  font-weight: 500;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin: 5px 10px;
+  transition: background-color 0.3s;
+}
+
+.nav-link:hover {
+  background-color: #005b99; /* Lighter blue on hover */
+}
+
+.nav-link.active {
+  background-color: #007bff; /* Bootstrap primary blue */
+  color: white !important;
+}
+
+.nav-item {
+  margin-bottom: 10px;
+}
+
+/* Main Content Styles */
+main {
+  padding-top: 20px;
+}
+
+/* Accordion/Expandable Section Styles */
+.accordion-body {
+  background-color: #e9ecef;
+  border-radius: 5px;
+  padding: 15px;
+}
+
+.accordion-item {
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+/* Approve Button Styles */
+.approve-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.approve-btn:hover {
+  background-color: #218838;
+}
+
+/* Table Styles */
+.table {
+  margin-top: 15px;
+}
+
+.table th,
+.table td {
+  vertical-align: middle;
+}
+
+/* Image Thumbnail Styles */
+.img-thumbnail {
+  cursor: pointer;
+  max-width: 60px;
+  max-height: 60px;
+}
+
+/* Registration Form Styles */
+.registration-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.registration-container .form-label {
+  font-weight: 500;
+}
+
+.registration-container .btn-primary {
+  background-color: #007bff;
+  border: none;
+}
+
+.registration-container .btn-primary:hover {
+  background-color: #0056b3;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767.98px) {
+  .sidebar {
+    position: static;
+    height: auto;
+    padding-bottom: 20px;
+  }
+
+  main {
+    margin-left: 0 !important;
+  }
+
+  .registration-container {
+    padding: 10px;
+  }
+}

@@ -1,0 +1,109 @@
+/* General Body Styles */
+.CLogin-container-body {
+  background-color: #f0f0f0;
+  margin-top: -1%;
+  padding-bottom: 30px;
+  padding-top: 4%;
+}
+
+/* Animation for Login Container */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 2;
+    transform: translateY(0);
+  }
+}
+
+/* Login Container Styles */
+.CLogin-container {
+  max-width: 35%;
+  max-height: 45%;
+  margin: 10% auto;
+  padding: 30px;
+  margin-top: 1%;
+  background-color: #f8fcfc;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.721);
+  animation: fadeInUp 0.8s ease-out;
+}
+
+h2 {
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  font-weight: bold;
+  color: #000000;
+  margin-bottom: 0px;
+}
+
+/* Form Styles */
+.Loginform-label {
+  font-weight: bold;
+  color: #000000;
+}
+
+.Loginform-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #bdc3c7;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.Loginform-control:focus {
+  border-color: #000000;
+  outline: none;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Button Styles */
+.Loginbtn {
+  background-color: #000000;
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s;
+}
+
+.Loginbtn:hover {
+  background-color: #333333;
+  transform: scale(1.05);
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 4px rgba(41, 41, 41, 0.5);
+}
+
+/* Alert Styles */
+.alert {
+  font-size: 0.9rem;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.alert-success {
+  background-color: #2ecc71;
+  color: #ffffff;
+}
+
+.alert-danger {
+  background-color: #e74c3c;
+  color: #ffffff;
+}
+
+/* Link Styles */
+.text-primary {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.text-primary:hover {
+  text-decoration: underline;
+}

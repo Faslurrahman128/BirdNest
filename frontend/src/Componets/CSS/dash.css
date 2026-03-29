@@ -1,0 +1,529 @@
+/* dash.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;500&display=swap');
+
+
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+}
+/* Navbar Links */
+.nav-link2 {
+  color:#000000;
+  font-size: 18px;
+  font-family:Verdana, Geneva, Tahoma, sans-serif;
+  margin-right: 15px;
+  transition: color 0.3s ease;
+  border: #ffffff;
+  margin-bottom: 2%;
+  margin-top: 14%;
+  background-color: #ffffff;
+}
+
+/* Navbar Styles */
+.navbar {
+  background: #063970;
+  padding-right: 5%;
+  height: 65px;
+}
+.LOGO-container{
+  margin-left: 0%;
+  margin-top: -1.5%;
+  margin-bottom: 0%;
+}
+.nav-link{
+  color: #fffefc !important;
+  margin-right: 15px;
+  font-size: 18px !important;
+  transition: color 0.3s ease;
+  margin-bottom: 0%;  
+  margin-top: 6%;
+}
+
+
+.nav-link-text-warning{
+  color: #fdb603 !important; /* Ensure white color */
+  font-size: 20px;
+  margin-right: 15px;
+  transition: color 0.3s ease;
+  margin-bottom: 0%;
+  margin-top: 8%;
+}
+
+.nav-link-text-warning:hover{
+  font-weight: bold;
+}
+/* Active/ Hover State for Navbar Links */
+.nav-link.active,
+.nav-link:hover {
+  color: #ffffff !important; /* Keep white on hover */
+  font-weight: bold;
+}
+
+  /* welcome Section */
+  
+/* Container styles for text and image */
+.sector01{
+  background-color: #fcfdfe; /* Light gray background */
+
+}
+
+@keyframes backgroundSlider {
+
+  0% { background-image: url('../assets/SLIIT-malabe.jpg'); }
+  25% { background-image: url('../assets/dashboardimage1.jpg'); }
+  50% { background-image: url('../assets/dashboardimage3.webp'); }
+  75% { background-image: url('../assets/Moving-Day.png'); }
+  100% { background-image: url('../assets/key-exchnage.webp'); }
+  
+}
+
+
+
+.Homesector1-container {
+  display: flex;
+  align-items: center;
+  padding: 35px;
+  margin-left: 0%;
+  max-width: 100%;
+  margin-top: 0%;
+  min-height: 80vh;
+  height: auto;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  /* Apply the animation */
+  animation: backgroundSlider 100s infinite ease-in-out;
+}
+
+
+/* Text Section (h1 and p) */
+.Homesector1-container .text-section {
+  max-width: 70%; /* Restrict width for the text */
+}
+
+
+.dash-Maintopic1 {
+  font-size: 38px; /* Large text size for emphasis */
+  font-family: 'Poppins', sans-serif; /* Modern sans-serif font similar to the example */
+  color:#ffffff; /* Dark green color */
+  font-weight: bold; /* Bold for strong emphasis */
+  text-align: left; /* Centered text */
+  margin: 20px auto; /* Top and bottom margin with centered layout */
+  margin-left: 3%;
+  margin-top: -10%;
+}
+
+
+.dash-Mainpara1{
+  font-size: 18px;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 45px;
+  color: #ffffff;
+  margin: 20px auto;
+  margin-left: 3%;
+  margin-right: 13%;
+  
+}
+
+
+
+  /* Styles for the getstart-button */
+.getstart-button{
+  background-color:#000000; /* Primary Blue Color */
+  color: #fff; /* White Text */
+  font-size: 16px; /* Font size */
+  font-weight: bold; /* Bold text */
+  height: 40px;
+  width: 100px;
+   border: none; /* Remove borders */
+  border-radius: 10px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+  margin-left:5%;
+  margin-top: 2.5%;
+  margin-bottom: 3%;
+}
+
+.addproperty-button{
+  background-color:transparent; /* Primary Blue Color */
+  color: #000000; /* White Text */
+  font-size: 16px; /* Font size */
+  font-weight: bold; /* Bold text */
+  padding: 5px 55px; /* Padding */
+  border: black; /* Remove borders */
+  border-radius: 20px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+  margin-left:5%;
+  margin-top: 0%;
+  margin-bottom: 3%;
+}
+
+/* Hover Effect */
+.getstart-button:hover {
+  background-color: #1d1d1d; /* Darker Blue */
+  transform: scale(1.05); /* Slightly enlarge on hover */
+}
+
+
+/* Styles for the Login Button */
+.Login-button{
+  background-color: #000000; /* Primary Blue Color */
+  color: #ffffff; /* White Text */
+  font-size: 16px; /* Font size */
+  font-weight: bold; /* Bold text */
+  padding: 12px 18px; /* Padding */
+  border: none; /* Remove borders */
+  margin-left: 4%;
+  border-radius: 20px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+}
+
+/* Hover Effect */
+.Login-button:hover {
+  background-color: #282828; /* Darker Blue */
+  transform: scale(1.05); /* Slightly enlarge on hover */
+}
+
+
+
+
+/* Process.css */
+/* General Section Styling */
+.statistics-section {
+  padding: 50px 0;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  display: flex;
+  max-width: 1200px;
+  width: 100%;
+  gap: 50px;
+}
+
+/* Left Section Styling */
+.stats-left {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+
+.stat-box {
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  color: #000;
+}
+
+.stat-label {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Right Section Styling */
+.stats-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.section-description {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.primary-button,
+.secondary-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.primary-button {
+  background-color: #000;
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.primary-button:hover {
+  background-color: #333;
+}
+
+.secondary-button {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #ddd;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.secondary-button:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stats-left {
+    grid-template-columns: 1fr;
+  }
+
+  .buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+
+
+
+
+/* FAQ.css */
+
+.FAQ-container{
+  padding-top: 2%;
+  height:  auto;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #F9FCFF; 
+  min-height: 300px; 
+  
+}
+
+.faq-heading {
+  font-size: 45px;
+  color: #162A2C;
+  font-weight: bold;
+  margin-bottom: 25px;
+  text-align: center; /* Align text to the left */
+  margin-top: 0%;
+}
+
+.accordion-item {
+  margin-bottom: 1rem; 
+  margin-left: 15%;
+  margin-right: 15%;/* Add bottom margin to each accordion item */
+  
+}
+
+.accordion-button {
+  background-color: #ffffff; /* Bootstrap primary color */
+  color: #023613;
+}
+
+.accordion-button:focus {
+  border-color: #eaebeb; /* Focus color */
+  box-shadow: none;
+}
+
+.accordion-body {
+  font-size: 1rem;
+  color: #292828;
+  
+}
+
+ /*Newletter.css */
+ .newsletter-container {
+  background-color: #ffffff;
+  max-height: 350px;
+ 
+}
+
+.newsletter-card {
+  box-shadow: #000000;
+  overflow: hidden;
+  margin-bottom: 40px;
+  
+}
+
+.newsletter-card .illustration {
+  background-image: url("../assets/drawinghouse.png");
+  background-size: cover;
+  background-position: 455px;
+  width: 280px;
+  height: 250px;
+  margin: -5%;
+  margin-left: -10%;
+  margin-right: -10%;
+  border-radius: 5%;
+}
+
+.submit-btn{
+  width: 90px;
+  height: 45px;
+  border-radius: 20px;
+  border: 0px;
+  background-color: #162A2C;
+  color: white;
+  margin-left: -17%;
+  margin-top: 0px;
+}
+
+.input-box{
+  width: 400px;
+  height: 45px;
+  border-radius: 20px;
+  border: 10px;
+  background-color: #e4e4e4;
+  color: rgb(0, 0, 0);
+  margin-left: 5%;
+  padding: 15px;
+}
+.input-box::placeholder {
+  color: #6c757d; /* Optional: Change the placeholder color */
+  margin: 5%;
+}
+
+.newlettertopic{
+  color: #162A2C;
+  font-family:Arial, Helvetica, sans-serif;
+}
+
+
+
+
+
+ /*footer.css */
+
+/* Footer General Styling */
+#contact {
+  background-color: #0D1328; /* Dark background */
+  color: #fff; /* White text */
+  padding: 20px 0;
+}
+
+#footer_content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#footer_contacts {
+  text-align: center;
+  margin-bottom: 0px;
+}
+
+.footer-logo {
+  max-width: 100px;
+  height: auto;
+}
+
+/* Footer Columns */
+#footer_content .row {
+  display: flex;
+  flex-wrap: wrap; 
+  margin-left: 3%;
+  gap: 150px;
+  
+}
+
+#footer_content .col-md-4 {
+  flex: 1;
+  min-width: 100px;
+  margin-bottom: 0px;
+}
+
+h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  color: #f1c40f; /* Highlight color */
+}
+
+/* Footer Links */
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+ul li {
+  margin-bottom: 10px;
+}
+
+ul li a {
+  text-decoration: none;
+  color: #ecf0f1;
+  transition: color 0.3s ease;
+}
+
+
+
+/* Contact Details */
+#footer_content .col-md-4 ul li {
+  color: #bdc3c7;
+  font-size: 14px;
+}
+
+/* Social Media Icons */
+#footer_social_media {
+  display: flex;
+  justify-content: left;
+  gap: 15px;
+}
+
+#footer_social_media a {
+  color: #ecf0f1;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+#footer_social_media a img {
+  width: 34px;
+  height: 34px;
+  transition: transform 0.3s ease;
+}
+
+#footer_social_media a:hover img {
+  transform: scale(1.2);
+}
+
+/* Footer Copyright */
+#footer_copyright {
+  font-size: 14px;
+  color: #deeff0;
+  padding-top: 5px;
+  border-top: 1px solid #0D1328;
+  margin-top: 10px;
+  text-align: center;
+}
+
+ 
