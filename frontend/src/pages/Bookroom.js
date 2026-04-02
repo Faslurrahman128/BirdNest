@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom"; // Import useNavigat
 import "bootstrap/dist/css/bootstrap.min.css";
 import '../Componets/CSS/Bookroom.css'; // Ensure the CSS is linked here
-import logo from "../Componets/assets/unistaylogo.png";
+import logo from "../Componets/assets/APPLOGO.png";
 import { FaCommentDots } from "react-icons/fa";
 
 function BookRoomPage() {

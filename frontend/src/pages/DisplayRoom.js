@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom"; // Navigation hooks
 import axios from "axios";
 import searchIcon from "../Componets/assets/searchimage.png";
 import '../Componets/CSS/DisplayRoom.css';
-import logo from "../Componets/assets/unistaylogo.png";
+import logo from "../Componets/assets/APPLOGO.png";
 
 function RoomList() {
   const location = useLocation();

@@ -5,7 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // Bootstrap JS
 import "../Componets/CSS/Profile.css";
 import { Download, Rating} from "lucide-react";
-import logo from "../Componets/assets/unistaylogo.png";
+import logo from "../Componets/assets/APPLOGO.png";
 import jsPDF from "jspdf"; // Import jsPDF
 
 function LoggedCustomer() {
@@ -121,14 +121,14 @@ function LoggedCustomer() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     
-    doc.text("Unistay - Rental Confirmation", 20, 15);
+    doc.text("Bird Nest - Rental Confirmation", 20, 15);
     
     // Add a thank you message for the buyer and staff (Text color: Dark Blue)
     doc.setTextColor(0, 0, 139); // Dark blue color for the message
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
    
-    doc.text("Thank you for choosing Unistay!", 20, 30);
+    doc.text("Thank you for choosing Bird Nest!", 20, 30);
     doc.text("Your room details are as follows:", 20, 40);
   
     // Add "Room Owner Details" topic
@@ -188,10 +188,10 @@ function LoggedCustomer() {
     doc.setTextColor(0, 0, 0); // Black color for text
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text("For any issues or inquiries, please use our built-in ticket system on the Unistay website.", 20, 150);
+    doc.text("For any issues or inquiries, please use our built-in ticket system on the Bird Nest website.", 20, 150);
     doc.text("You can also reach out to our support team:", 20, 155);
     doc.text("Hotline: +077 222 3388", 20, 160);
-    doc.text("Email: support@unistay.com", 20, 165);
+    doc.text("Email: support@birdnest.com", 20, 165);
     
     // Add rating suggestion line
     doc.setFont("helvetica", "italic");

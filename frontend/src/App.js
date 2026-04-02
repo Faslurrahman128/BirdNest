@@ -66,6 +66,7 @@ function App() {
           
           <Route path='/Confirm' element={<Confirm/>} />
           <Route path="/StaffLogin" element={<AdminLogin />} />
+          <Route path="/AdminLogin" element={<AdminLogin />} />
           <Route path="/AdminRegister" element={<AdminRegister />} />
           <Route path="/Admindash" element={<Admindashboard />} />
           <Route path="/AboutUs" element={<AboutUs />} />

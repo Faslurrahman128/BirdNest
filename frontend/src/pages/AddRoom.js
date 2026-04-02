@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import '../Componets/CSS/AddRoom.css'
-import logo from "../Componets/assets/unistaylogo.png";
+import logo from "../Componets/assets/APPLOGO.png";
 
 function AddRoom() {
   const [roomAddress, setRoomAddress] = useState("");
