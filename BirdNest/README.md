@@ -1,2 +1,0 @@
-# Boarding Management System
- 
