@@ -1,28 +1,85 @@
 /* Main container styling */
-.Postadd-container-body{
+.Postadd-container-body {
   background-color: #F0F0F0;
   padding-top: 1%;
   padding-bottom: 2%;
-
+  min-height: 100vh;
 }
 
 .Postadd-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 20px auto;
-  padding: 20px;
+  padding: 30px;
   background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
- 
-  
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding: 0 20px;
+}
+
+.progress-step {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active {
+  background-color: #060606;
+  color: white;
+  box-shadow: 0 0 0 3px rgba(6, 6, 6, 0.2);
+}
+
+.progress-line {
+  width: 60px;
+  height: 2px;
+  background-color: #e0e0e0;
+  margin: 0 10px;
+}
+
+/* Form Sections */
+.form-section {
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+  border: 1px solid #eee;
+  transition: all 0.3s ease;
+}
+
+.form-section:hover {
+  border-color: #ddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #060606;
+  color: #333;
 }
 
 /* Heading styles */
 .Postadd-container h2 {
   text-align: center;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   color: #333;
 }
 
@@ -31,84 +88,367 @@
   color: #666;
   margin-bottom: 30px;
   font-size: 0.95rem;
+    min-width: 100%;
+
 }
 
 /* Input and textarea styles */
 .Postadd-container .form-control {
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 0.9rem;
-  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  transition: all 0.2s ease;
+ 
+}
+
+/* Select element specific styles */
+.Postadd-container select.form-control {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 40px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  min-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+}
+
+.Postadd-container select.form-control option {
+  padding: 8px 12px;
+  background-color: white;
+  color: #333;
+  white-space: normal;
+  word-wrap: break-word;
+   
 }
 
 .Postadd-container .form-control:focus {
-  border-color: #0e0f0f;
-  box-shadow: 0 0 5px rgba(14, 14, 14, 0.5);
+  border-color: #060606;
+  box-shadow: 0 0 0 3px rgba(6, 6, 6, 0.1);
+  outline: none;
+}
+
+/* Validation styles */
+.Postadd-container .form-control.is-valid {
+  border-color: #28a745;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 35px;
+}
+
+.Postadd-container .form-control.is-invalid {
+  border-color: #dc3545;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linecap='round' d='M6 8.5v-4'/%3e%3cpath stroke-linecap='round' d='M6 8.5v-4'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 35px;
+}
+
+.invalid-feedback {
+  display: block;
+  font-size: 0.8rem;
+  color: #dc3545;
+  margin-top: 5px;
+}
+
+/* Price input wrapper */
+.price-input-wrapper {
+  position: relative;
+}
+
+.currency-symbol {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-weight: 500;
+  z-index: 1;
+}
+
+.price-input-wrapper .form-control {
+  padding-left: 35px;
+}
+
+/* Negotiable group */
+.negotiable-group {
+  display: flex;
+  gap: 20px;
+  padding-top: 8px;
+}
+
+.form-check-inline {
+  margin-right: 20px;
+}
+
+.form-check-input {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.form-check-label {
+  cursor: pointer;
+}
+
+/* Character counter */
+.char-counter {
+  text-align: right;
+  margin-top: 5px;
+}
+
+/* Drag and drop zone */
+.drag-drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #fefefe;
+  margin-bottom: 15px;
+}
+
+.drag-drop-zone:hover {
+  border-color: #060606;
+  background-color: #fafafa;
+}
+
+.drag-drop-zone.drag-active {
+  border-color: #060606;
+  background-color: #f0f0f0;
+  transform: scale(1.01);
+}
+
+.drag-drop-zone.border-danger {
+  border-color: #dc3545;
+}
+
+.drag-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.drag-drop-content p {
+  margin: 0;
+  font-weight: 500;
+  color: #555;
+}
+
+.drag-drop-content small {
+  color: #999;
+}
+
+/* Image preview grid */
+.image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 120px));
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.image-preview-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.image-preview-item:hover {
+  transform: scale(1.05);
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: rgba(220, 53, 69, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.remove-image-btn:hover {
+  background-color: #dc3545;
+  transform: scale(1.1);
+}
+
+.image-number {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: bold;
 }
 
 /* Label styles */
 .Postadd-container .form-label {
-  font-weight: 500;
+  font-weight: 600;
   color: #444;
+  margin-bottom: 8px;
 }
 
 /* Button styles */
 .Postadd-container .btn-primary {
-  background-color:  #060606;
+  background-color: #060606;
   border: none;
-  border-radius: 5px;
-  padding: 10px;
+  border-radius: 10px;
+  padding: 14px;
   font-size: 1rem;
   font-weight: bold;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  margin-top: 10px;
 }
 
-.Postadd-container .btn-primary:hover {
-  background-color:  #212222;
+.Postadd-container .btn-primary:hover:not(:disabled) {
+  background-color: #212222;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Image preview */
-.Postadd-container .mt-2 img {
-  border: 1px solid #ddd;
-  border-radius: 5px;
+.Postadd-container .btn-primary:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-/* Remove button for images */
-.Postadd-container .btn-danger {
-  margin-left: 10px;
-  font-size: 0.85rem;
+/* Terms hint */
+.terms-hint {
+  text-align: left;
+  margin-top: -10px;
+  margin-bottom: 15px;
 }
 
-/* Radio button labels */
-.Postadd-container input[type="radio"] + label {
-  font-weight: 500;
-  cursor: pointer;
+.terms-hint a {
+  color: #060606;
+  text-decoration: none;
 }
 
-.Postadd-container input[type="radio"] {
-  margin-right: 5px;
+.terms-hint a:hover {
+  text-decoration: underline;
 }
 
-/* Row margin adjustments */
-.Postadd-container .row {
-  margin-bottom: 15px; /* Adds spacing between rows */
+/* Loading spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.2em;
 }
 
-/* Form submit button */
-.Postadd-container button[type="submit"] {
-  margin-top: 20px;
-  padding: 15px;
-  font-size: 1.1rem;
-  font-weight: bold;
+/* Text helpers */
+.text-muted {
+  color: #6c757d !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
 }
 
 /* Responsive Design */
-@media (max-width: 576px) {
+@media (max-width: 768px) {
   .Postadd-container {
+    margin: 10px;
     padding: 20px;
   }
+  
+  .form-section {
+    padding: 15px;
+  }
+  
+  .progress-line {
+    width: 30px;
+  }
+  
+  .progress-step {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
+  }
+  
+  .image-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 90px));
+  }
+  
+  .negotiable-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
 
-  .Postadd-container .btn-primary {
+@media (max-width: 576px) {
+  .Postadd-container {
+    padding: 15px;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+  }
+  
+  .drag-drop-zone {
+    padding: 25px 15px;
+  }
+  
+  .drag-icon {
+    font-size: 36px;
+  }
+  
+  .btn-primary {
     font-size: 0.9rem;
   }
+/* Alternative fix - Force dropdown to expand */
+#roomType,
+#roomCity {
+  width: auto !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  height: 150px;
+}
+
+#roomType option,
+#roomCity option {
+  white-space: nowrap !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  
+}
+
+/* For very long text */
+select.form-control[size],
+select.form-control[multiple] {
+  height: auto;
+}
+
+select.form-control optgroup,
+select.form-control option {
+  white-space: nowrap;
+}
 }
