@@ -52,7 +52,7 @@ const serviceProvider = require("./models/serviceProvider");
 // Multer setup for image uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "Uploads");
+    const uploadPath = path.join(__dirname, "uploads");
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -64,7 +64,7 @@ const storage = multer.diskStorage({
 });
 
 // Serve static files (images) from the 'uploads' folder
-app.use("/uploads", express.static(path.join(__dirname, "Uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const upload = multer({
   storage,

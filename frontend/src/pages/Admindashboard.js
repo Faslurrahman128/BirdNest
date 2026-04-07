@@ -1,12 +1,41 @@
-
+import ramadanMoon from '../assets/ramadan-moon.jpg';
+import ramadanLantern from '../assets/ramadan-lantern.jpg';
+import christmasBg from '../assets/christmas-bg.jpg';
+import tree from '../assets/tree.avif';
+import fireworks from '../assets/fireworks.png';
+import fireworkIcon from '../assets/firework-icon.png';
 import React, { useEffect, useState } from "react";
+import { ThemeProvider, useTheme, THEMES } from "../ThemeContext";
+import ThemeSwitcher from "../Componets/ThemeSwitcher";
+import "../Componets/CSS/theme-decorations.css";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "../Componets/AppHeader";
 import "../Componets/CSS/admin-glass.css";
 import logo from "../Componets/assets/APPLOGO.png";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
-function AdminDashboard() {
+function AdminDashboardContent() {
+    // Handle rejection of a room (must be inside component)
+    const handleRejection = async (id) => {
+      try {
+        setLoading(true);
+        await axios.put(
+          `http://localhost:8070/Room/verify/${id}`,
+          { isVerified: false, rejected: true },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        // Refetch rooms to ensure state is correct
+        await fetchRooms();
+        setSelectedRoom(null);
+        setError("");
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to reject room.");
+        setLoading(false);
+      }
+    };
   const location = useLocation();
   const message1 = location.state?.message || "";
   const [activeSection, setActiveSection] = useState("room");
@@ -30,30 +59,46 @@ function AdminDashboard() {
 
   const token = sessionStorage.getItem("token");
 
+  // Room fetch logic extracted for reuse
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get("http://localhost:8070/rooms", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const roomsData = response.data;
+
+      // Only show rooms with rejected:true under verifiedRooms, not under unverifiedRooms
+      let verified = roomsData.filter((room) => room.isVerified && !room.rejected);
+      const rejected = roomsData.filter((room) => room.rejected === true);
+      let unverified = roomsData.filter((room) => room.isVerified === false && !room.rejected);
+
+      // Sort verified rooms by verifiedAt (desc), fallback to createdAt if missing
+      verified = verified.sort((a, b) => {
+        const aDate = a.verifiedAt ? new Date(a.verifiedAt) : new Date(a.createdAt);
+        const bDate = b.verifiedAt ? new Date(b.verifiedAt) : new Date(b.createdAt);
+        return bDate - aDate;
+      });
+
+      // Sort unverified rooms by createdAt (desc)
+      unverified = unverified.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      setVerifiedRooms([...verified, ...rejected]);
+      // Debug log to check verifiedAt values
+      console.log('Verified Rooms:', verified.map(r => ({ id: r._id, verifiedAt: r.verifiedAt, createdAt: r.createdAt })));
+      setUnverifiedRooms(unverified);
+      setLoading(false);
+    } catch (error) {
+      setError("Error fetching rooms. Please try again later.");
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get("http://localhost:8070/rooms", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const roomsData = response.data;
-
-        const verified = roomsData.filter((room) => room.isVerified);
-        const unverified = roomsData.filter((room) => !room.isVerified);
-
-        setVerifiedRooms(verified);
-        setUnverifiedRooms(unverified);
-        setLoading(false);
-      } catch (error) {
-        setError("Error fetching rooms. Please try again later.");
-        setLoading(false);
-      }
-    };
-
     fetchRooms();
+    // eslint-disable-next-line
   }, [token]);
 
   const handleSectionClick = (section) => {
@@ -78,28 +123,25 @@ function AdminDashboard() {
       alert("Authorization token is missing. Please log in again.");
       return;
     }
-
     try {
-      const response = await axios.put(
+      setLoading(true);
+      await axios.put(
         `http://localhost:8070/Room/verify/${id}`,
-        { isVerified: true },
+        { isVerified: true, rejected: false },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-
-      if (response.status === 200) {
-        const verifiedRoom = unverifiedRooms.find((room) => room._id === id);
-        setUnverifiedRooms((prevRooms) => prevRooms.filter((room) => room._id !== id));
-        setVerifiedRooms((prevRooms) => [...prevRooms, verifiedRoom]);
-        alert("Room successfully verified!");
-      } else {
-        alert("Failed to update room status.");
-      }
+      await fetchRooms();
+      setSelectedRoom(null);
+      setError("");
+      setLoading(false);
+      alert("Room successfully verified!");
     } catch (err) {
-      alert("Error updating room status: " + (err.response?.data?.error || err.message));
+      setError("Failed to verify room.");
+      setLoading(false);
     }
   };
 
@@ -156,8 +198,111 @@ function AdminDashboard() {
   
 
 
+  // PDF generation states
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState("");
+  const [tempEndDate, setTempEndDate] = useState("");
+  // Add missing PDF date range states
+  const [pdfStartDate, setPdfStartDate] = useState("");
+  const [pdfEndDate, setPdfEndDate] = useState("");
+
+  const openPdfModal = () => {
+    setShowPdfModal(true);
+  };
+  const closePdfModal = () => setShowPdfModal(false);
+  const submitPdfModal = () => {
+    setPdfStartDate(tempStartDate);
+    setPdfEndDate(tempEndDate);
+    setShowPdfModal(false);
+    setTimeout(() => handleGeneratePdf(), 0);
+  };
+
+  // Helper: filter rooms by date range
+  const filterRoomsByDate = (rooms, start, end) => {
+    if (!start && !end) return rooms;
+    const startDate = start ? new Date(start) : null;
+    const endDate = end ? new Date(end) : null;
+    return rooms.filter(room => {
+      const created = new Date(room.createdAt);
+      if (startDate && created < startDate) return false;
+      if (endDate && created > endDate) return false;
+      return true;
+    });
+  };
+
+  // PDF generation handler
+  const handleGeneratePdf = () => {
+    // Filter and sort by submission date (createdAt) descending
+    let filteredVerified = filterRoomsByDate(verifiedRooms, pdfStartDate, pdfEndDate);
+    let filteredUnverified = filterRoomsByDate(unverifiedRooms, pdfStartDate, pdfEndDate);
+    filteredVerified = filteredVerified.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    filteredUnverified = filteredUnverified.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Room Summary Report", 14, 16);
+    doc.setFontSize(11);
+    doc.text(`Date Range: ${pdfStartDate || 'All'} to ${pdfEndDate || 'All'}`, 14, 24);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+
+    // Verified Table
+    doc.setFontSize(13);
+    doc.text("Verified Rooms", 14, 40);
+    autoTable(doc, {
+      startY: 44,
+      head: [["Type", "Owner", "City", "Price", "Submission Date", "Approval Date"]],
+      body: filteredVerified.map(r => [
+        r.roomType,
+        r.ownerName || "N/A",
+        r.roomCity,
+        r.price,
+        r.createdAt ? new Date(r.createdAt).toLocaleString() : "-",
+        r.verifiedAt ? new Date(r.verifiedAt).toLocaleString() : "-"
+      ]),
+      theme: 'grid',
+      headStyles: { fillColor: [40, 167, 69] },
+    });
+    let nextY = doc.lastAutoTable.finalY + 10;
+    // Unverified Table
+    doc.setFontSize(13);
+    doc.text("Unverified Rooms", 14, nextY);
+    autoTable(doc, {
+      startY: nextY + 4,
+      head: [["Type", "Owner", "City", "Price", "Submission Date", "Approval Date (Status)"]],
+      body: filteredUnverified.map(r => [
+        r.roomType,
+        r.ownerName || "N/A",
+        r.roomCity,
+        r.price,
+        r.createdAt ? new Date(r.createdAt).toLocaleString() : "-",
+        r.verifiedAt ? new Date(r.verifiedAt).toLocaleString() : "-"
+      ]),
+      theme: 'grid',
+      headStyles: { fillColor: [255, 193, 7] },
+    });
+    doc.save(`Room_Summary_${pdfStartDate || 'All'}_${pdfEndDate || 'All'}.pdf`);
+  };
+
+  const { theme } = useTheme();
+  // Theme background and doodle icon
+  let bgImage = null;
+  let doodle = null;
+  if (theme === THEMES.RAMADAN) {
+    bgImage = ramadanMoon;
+    doodle = <img src={ramadanLantern} alt="Ramadan" className="ramadan-icon" />;
+  } else if (theme === THEMES.CHRISTMAS) {
+    bgImage = christmasBg;
+    doodle = <img src={tree} alt="Christmas" className="christmas-icon" />;
+  } else if (theme === THEMES.NEWYEAR) {
+    bgImage = fireworks;
+    doodle = <img src={fireworkIcon} alt="New Year" className="newyear-icon" />;
+  }
+
   return (
-    <div className="admin-glass-bg">
+    <div
+      className={`admin-glass-bg theme-${theme}`}
+      style={bgImage ? { backgroundImage: `url(${bgImage})`, backgroundRepeat: 'no-repeat', backgroundPosition: 'top right' } : {}}
+    >
       {/* Animated SVG Background Shapes */}
       <svg className="admin-bg-svg" width="100%" height="100%" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -178,7 +323,13 @@ function AdminDashboard() {
         </path>
       </svg>
       {/* App Header */}
-      <AppHeader appName="Bird Nest" tagline="Empowering Admins, Effortlessly" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem' }}>
+        <AppHeader appName="Bird Nest" tagline="Empowering Admins, Effortlessly" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <ThemeSwitcher />
+          {doodle}
+        </div>
+      </div>
       <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", minHeight: "80vh", gap: "2rem", position: "relative", zIndex: 2 }}>
         {/* Sidebar Navigation */}
         <div style={{ minWidth: 220, maxWidth: 260, marginTop: "2.5rem" }}>
@@ -201,18 +352,168 @@ function AdminDashboard() {
             {/* Room Management Section */}
             {activeSection === "room" && (
               <section id="room-management" className="mb-4">
-                <h2 className="admin-glass-title">Room Management</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
+                  <h2 className="admin-glass-title" style={{ marginBottom: 0 }}>Room Management</h2>
+                  <button
+                    onClick={openPdfModal}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 7,
+                      background: 'linear-gradient(90deg, #1976d2 60%, #2196f3 100%)',
+                      color: '#fff',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      padding: '7px 18px',
+                      border: 'none',
+                      borderRadius: 8,
+                      boxShadow: '0 2px 8px rgba(25, 118, 210, 0.10)',
+                      marginLeft: 12,
+                      marginTop: 2,
+                      minWidth: 0,
+                      cursor: 'pointer',
+                      transition: 'background 0.2s, box-shadow 0.2s',
+                    }}
+                    onMouseOver={e => {
+                      e.currentTarget.style.background = 'linear-gradient(90deg, #1565c0 60%, #1976d2 100%)';
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(25, 118, 210, 0.18)';
+                    }}
+                    onMouseOut={e => {
+                      e.currentTarget.style.background = 'linear-gradient(90deg, #1976d2 60%, #2196f3 100%)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(25, 118, 210, 0.10)';
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H6zm0 2h12v16H6V4zm6 2a1 1 0 0 1 1 1v5.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L11 12.586V7a1 1 0 0 1 1-1z"/></svg>
+                    PDF Summary
+                  </button>
+                </div>
                 {unverifiedRooms.length > 0 && (
-                  <div className="alert alert-warning text-center">
+                  <div className="alert alert-warning text-center" style={{ marginTop: 12 }}>
                     ⚠️ There are {unverifiedRooms.length} unverified rooms waiting for approval.
+                  </div>
+                )}
+
+                {/* PDF Modal */}
+                {showPdfModal && (
+                  <div style={{
+                    position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
+                    background: 'rgba(0,0,0,0.22)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    <div style={{
+                      background: '#fff',
+                      borderRadius: 18,
+                      padding: '38px 38px 28px 38px',
+                      minWidth: 340,
+                      maxWidth: 420,
+                      boxShadow: '0 8px 40px rgba(25, 118, 210, 0.18)',
+                      border: '1.5px solid #e3eafc',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}>
+                      <h3 style={{
+                        marginBottom: 22,
+                        fontWeight: 700,
+                        fontSize: 24,
+                        color: '#232946',
+                        letterSpacing: 0.2
+                      }}>Select Duration for PDF</h3>
+                      <div style={{
+                        display: 'flex',
+                        gap: 28,
+                        marginBottom: 18,
+                        width: '100%',
+                        justifyContent: 'center',
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                          <label style={{ fontWeight: 500, color: '#3b4252', marginBottom: 6 }}>Start Date</label>
+                          <input
+                            type="date"
+                            value={tempStartDate}
+                            onChange={e => setTempStartDate(e.target.value)}
+                            style={{
+                              padding: '7px 10px',
+                              borderRadius: 6,
+                              border: '1.5px solid #bfcbe6',
+                              fontSize: 15,
+                              minWidth: 120,
+                              outline: 'none',
+                              transition: 'border 0.2s',
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                          <label style={{ fontWeight: 500, color: '#3b4252', marginBottom: 6 }}>End Date</label>
+                          <input
+                            type="date"
+                            value={tempEndDate}
+                            onChange={e => setTempEndDate(e.target.value)}
+                            style={{
+                              padding: '7px 10px',
+                              borderRadius: 6,
+                              border: '1.5px solid #bfcbe6',
+                              fontSize: 15,
+                              minWidth: 120,
+                              outline: 'none',
+                              transition: 'border 0.2s',
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div style={{ width: '100%', height: 1, background: '#e3eafc', margin: '10px 0 22px 0' }} />
+                      <div style={{ display: 'flex', gap: 22, justifyContent: 'center', width: '100%' }}>
+                        <button
+                          onClick={closePdfModal}
+                          style={{
+                            background: '#7b8794',
+                            color: '#fff',
+                            fontWeight: 600,
+                            fontSize: 17,
+                            border: 'none',
+                            borderRadius: 8,
+                            padding: '12px 38px',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                            boxShadow: '0 2px 8px rgba(123,135,148,0.10)'
+                          }}
+                          onMouseOver={e => e.currentTarget.style.background = '#616e7c'}
+                          onMouseOut={e => e.currentTarget.style.background = '#7b8794'}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={submitPdfModal}
+                          disabled={!tempStartDate && !tempEndDate}
+                          style={{
+                            background: (!tempStartDate && !tempEndDate) ? '#a7d7c5' : '#159a6f',
+                            color: '#fff',
+                            fontWeight: 700,
+                            fontSize: 17,
+                            border: 'none',
+                            borderRadius: 8,
+                            padding: '12px 38px',
+                            cursor: (!tempStartDate && !tempEndDate) ? 'not-allowed' : 'pointer',
+                            opacity: (!tempStartDate && !tempEndDate) ? 0.7 : 1,
+                            boxShadow: '0 2px 8px rgba(21,154,111,0.10)'
+                          }}
+                          onMouseOver={e => {
+                            if (!e.currentTarget.disabled) e.currentTarget.style.background = '#107457';
+                          }}
+                          onMouseOut={e => {
+                            if (!e.currentTarget.disabled) e.currentTarget.style.background = '#159a6f';
+                          }}
+                        >
+                          Generate
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
                 {/* Unverified Rooms */}
                 <h4 className="admin-glass-subtitle">Unverified Rooms</h4>
+                {error && <div className="text-danger" style={{textAlign: 'center', marginBottom: 10}}>{error}</div>}
                 {loading ? (
                   <p>Loading rooms...</p>
-                ) : error ? (
-                  <p className="text-danger">{error}</p>
                 ) : unverifiedRooms.length === 0 ? (
                   <p>No unverified rooms available.</p>
                 ) : (
@@ -223,19 +524,23 @@ function AdminDashboard() {
                           <th>Room Type</th>
                           <th>Address</th>
                           <th>Price</th>
+                          <th>Submission Date</th>
+                          <th>Approval Date</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {unverifiedRooms.map((room) => (
+                        {[...unverifiedRooms].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map((room) => (
                           <React.Fragment key={room._id}>
                             <tr onClick={() => handleRoomClick(room)} style={{ cursor: "pointer" }}>
                               <td>{room.roomType} - {room.ownerName || "N/A"}</td>
                               <td>{room.roomAddress}</td>
                               <td>Rs {room.price.toLocaleString()}</td>
+                              <td>{room.createdAt ? new Date(room.createdAt).toLocaleString() : "-"}</td>
+                              <td>{room.verifiedAt ? new Date(room.verifiedAt).toLocaleString() : "-"}</td>
                             </tr>
                             {selectedRoom?._id === room._id && (
                               <tr>
-                                <td colSpan="3">
+                                <td colSpan="5">
                                   <div className="accordion-body admin-glass-card" style={{ margin: '20px 0', background: 'rgba(255,255,255,0.45)', boxShadow: '0 8px 32px 0 rgba(31,38,135,0.18)', borderRadius: '22px', border: '1.5px solid rgba(255,255,255,0.35)', padding: '2rem 2rem 1.5rem 2rem', maxWidth: 700, marginLeft: 'auto', marginRight: 'auto' }}>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'flex-start' }}>
                                       <div style={{ flex: '1 1 260px', minWidth: 220 }}>
@@ -307,13 +612,20 @@ function AdminDashboard() {
                                             </ul>
                                           </div>
                                         )}
-                                        <div style={{ marginTop: 18 }}>
+                                        <div style={{ marginTop: 18, display: 'flex', gap: '10px' }}>
                                           <button
                                             onClick={() => handleVerification(room._id)}
                                             className="approve-btn btn btn-success"
                                             style={{ fontSize: 15, padding: '6px 14px', borderRadius: 8 }}
                                           >
                                             Approve
+                                          </button>
+                                          <button
+                                            onClick={() => handleRejection(room._id)}
+                                            className="reject-btn btn btn-danger"
+                                            style={{ fontSize: 15, padding: '6px 14px', borderRadius: 8 }}
+                                          >
+                                            Reject
                                           </button>
                                         </div>
                                       </div>
@@ -366,8 +678,6 @@ function AdminDashboard() {
                 <h4 className="admin-glass-subtitle">Verified Rooms</h4>
                 {loading ? (
                   <p>Loading rooms...</p>
-                ) : error ? (
-                  <p className="text-danger">{error}</p>
                 ) : verifiedRooms.length === 0 ? (
                   <p>No verified rooms available.</p>
                 ) : (
@@ -378,19 +688,27 @@ function AdminDashboard() {
                           <th>Room Type</th>
                           <th>Location</th>
                           <th>Price</th>
+                          <th>Submission Date</th>
+                          <th>Approval Date</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {verifiedRooms.map((room) => (
+                        {[...verifiedRooms].sort((a, b) => {
+                          const aDate = a.verifiedAt ? new Date(a.verifiedAt) : new Date(a.createdAt);
+                          const bDate = b.verifiedAt ? new Date(b.verifiedAt) : new Date(b.createdAt);
+                          return bDate - aDate;
+                        }).map((room) => (
                           <React.Fragment key={room._id}>
                             <tr onClick={() => handleRoomClick(room)} style={{ cursor: "pointer" }}>
                               <td>{room.roomType} - {room.ownerName || "N/A"}</td>
                               <td>{room.roomCity}</td>
                               <td>Rs {room.price.toLocaleString()}</td>
+                              <td>{room.createdAt ? new Date(room.createdAt).toLocaleString() : "-"}</td>
+                              <td>{room.verifiedAt ? new Date(room.verifiedAt).toLocaleString() : "-"}</td>
                             </tr>
                             {selectedRoom?._id === room._id && (
                               <tr>
-                                <td colSpan="3">
+                                <td colSpan="5">
                                   <div className="accordion-body">
                                   <img
                                     src={`http://localhost:8070${room.images[activeImageIndex]}`}
@@ -434,7 +752,17 @@ function AdminDashboard() {
                                   <p>
                                     <strong>Description:</strong> {room.description || "N/A"}
                                   </p>
-                                  <span className="badge bg-success" style={{ fontSize: 15, padding: '6px 14px', borderRadius: 8 }}>Approved ✅</span>
+                                  <p>
+                                    <strong>Submission Date:</strong> {room.createdAt ? new Date(room.createdAt).toLocaleString() : "-"}
+                                  </p>
+                                  <p>
+                                    <strong>Approval Date:</strong> {room.verifiedAt ? new Date(room.verifiedAt).toLocaleString() : "-"}
+                                  </p>
+                                  {room.rejected ? (
+                                    <span className="badge bg-danger" style={{ fontSize: 15, padding: '6px 14px', borderRadius: 8 }}>Rejected ❌</span>
+                                  ) : (
+                                    <span className="badge bg-success" style={{ fontSize: 15, padding: '6px 14px', borderRadius: 8 }}>Approved ✅</span>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -580,4 +908,12 @@ function AdminDashboard() {
   );
 }
 
-export default AdminDashboard;
+
+// Wrap with ThemeProvider
+export default function AdminDashboard() {
+  return (
+    <ThemeProvider>
+      <AdminDashboardContent />
+    </ThemeProvider>
+  );
+}

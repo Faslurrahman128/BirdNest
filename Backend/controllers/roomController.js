@@ -148,13 +148,26 @@ const getUnverifiedRooms = async (req, res) => {
 // Verify (Approve/Reject) a room
 const verifyRoom = async (req, res) => {
   try {
-    if (typeof req.body.isVerified !== "boolean") {
-      return res.status(400).json({ error: "Invalid value for isVerified" });
+    if (typeof req.body.isVerified !== "boolean" || typeof req.body.rejected !== "boolean") {
+      return res.status(400).json({ error: "Invalid value for isVerified or rejected" });
+    }
+
+    // Always set both fields explicitly
+    const updateFields = {
+      isVerified: req.body.isVerified,
+      rejected: req.body.rejected
+    };
+
+    // If verifying (approving), set verifiedAt
+    if (req.body.isVerified && !req.body.rejected) {
+      updateFields.verifiedAt = new Date();
+    } else if (!req.body.isVerified) {
+      updateFields.verifiedAt = undefined;
     }
 
     const updatedRoom = await Room.findByIdAndUpdate(
       req.params.id,
-      { isVerified: req.body.isVerified },
+      updateFields,
       { new: true }
     );
 
