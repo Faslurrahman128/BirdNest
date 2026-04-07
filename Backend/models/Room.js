@@ -13,6 +13,8 @@ const roomSchema = new mongoose.Schema(
     images: [{ type: String, required: true }],
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     isVerified: { type: Boolean, default: false },
+    rejected: { type: Boolean, default: false },
+    verifiedAt: { type: Date },
     isBooked: { type: Boolean, default: false },
     isBookedconfirm: { type: Boolean, default: false },
     buyerContactNumber: { type: String },

@@ -1,0 +1,45 @@
+/* Default theme: no decorations */
+.theme-default {}
+
+/* Ramadan theme */
+
+/* Ramadan theme */
+
+
+
+.theme-ramadan {
+  /* (optional styles here) */
+}
+
+/* Theme backgrounds and icons are now set via React component using JS imports. This CSS only provides optional sizing and spacing. */
+.ramadan-icon {
+  width: 32px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* Christmas theme */
+
+
+
+.theme-christmas {
+  /* (optional styles here) */
+}
+
+.christmas-icon {
+  width: 32px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* New Year theme */
+
+
+.theme-newyear {
+  /* (optional styles here) */
+}
+.newyear-icon {
+  width: 32px;
+  margin-left: 8px;
+  vertical-align: middle;
+}

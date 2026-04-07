@@ -1,17 +1,41 @@
 .admin-glass-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 0.7rem;
   background: linear-gradient(90deg, #232946 0%, #1a237e 100%);
   border-radius: 0 0 40px 40px;
-  /* Both bottom corners rounded - more curve */
-  padding: 0.7rem 0.7rem 0.7rem 0.7rem;
-  /* Reduced horizontal padding */
+  padding: 0.7rem 2.2rem 0.7rem 1.2rem;
   box-shadow: 0 2px 12px rgba(30, 40, 80, 0.13);
   position: relative;
   z-index: 2;
   width: 100%;
+}
+
+.
+admin-glass-header-content-right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+/* Logout Button Styles */
+.admin-logout-btn {
+  background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1.3rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px 0 rgba(231,76,60,0.10);
+  cursor: pointer;
+  margin-left: 1.5rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  align-self: flex-end;
+}
+.admin-logout-btn:hover {
+  background: linear-gradient(90deg, #c0392b 0%, #e74c3c 100%);
+  box-shadow: 0 4px 16px 0 rgba(231,76,60,0.18);
 }
 .admin-glass-header-left {
   display: flex;
