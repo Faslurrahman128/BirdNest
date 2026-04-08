@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import '../Componets/CSS/AddRoom.css'
+import '../Componets/CSS/MyListings.css'
 import logo from "../Componets/assets/unistaylogo.png";
 
 function AddRoom() {
@@ -33,7 +34,7 @@ function AddRoom() {
 
   // Price suggestions based on room type
   const priceSuggestions = {
-    "Single Room": { min: 15000, max: 35000 },
+    "Single Room": { min: 10000, max: 35000 },
     "Shared Room": { min: 8000, max: 20000 },
     "Anex": { min: 25000, max: 60000 },
     "Apartment": { min: 40000, max: 150000 }
@@ -328,12 +329,12 @@ function AddRoom() {
   };
 
   return (
-    <>
+    <div className="listings-body">
       {/* Navigation Bar */}
-      <div className="navbar navbar-expand-lg">
+      <nav className="navbar navbar-expand-lg">
         <div className="container">
           <div className="LOGO-container">
-            <a className="nav-link text-warning" href="/">
+            <a className="nav-link" href="/">
               <img src={logo} alt="LOGO" width="130" />
             </a>
           </div>
@@ -365,7 +366,7 @@ function AddRoom() {
                 <a className="nav-link" href="/service-providers">Services</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/">About Us</a>
+                <a className="nav-link" href="/Userroom">About Us</a>
               </li>
 
               <li className="nav-item dropdown">
@@ -387,6 +388,7 @@ function AddRoom() {
                   <li><a className="dropdown-item" href="/MyListings">My Listings</a></li>
                   <li><hr className="dropdown-divider" /></li>
                   <li><a className="dropdown-item" href="/register-service-provider">Service Provider</a></li>
+                  <li><hr className="dropdown-divider" /></li>
                   <li><a className="dropdown-item" href="/saved-providers">Bookmarks</a></li>
                   <li><hr className="dropdown-divider" /></li>
                   {sessionStorage.getItem("token") && (
@@ -399,7 +401,7 @@ function AddRoom() {
             </ul>
           </div>
         </div>
-      </div>
+      </nav>
       
       <div className="Postadd-container-body">
         <div className="Postadd-container">
@@ -745,7 +747,7 @@ function AddRoom() {
           </form>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
