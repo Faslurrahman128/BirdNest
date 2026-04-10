@@ -59,45 +59,51 @@ function BookRoomPage() {
   return (
     <>
       {/* Navigation Bar */}
-      <nav className="br-navbar">
-        <div className="br-navbar-inner">
-          <a href="/" className="br-logo">
-            <img src={logo} alt="UniStay" className="br-logo-img" />
-          </a>
+      <nav className="navbar navbar-expand-lg">
+        <div className="container">
+          <div className="LOGO-container">
+            <a className="nav-link" href="/">
+              <img src={logo} alt="LOGO" width="130" />
+            </a>
+          </div>
 
           <button
-            className="br-navbar-toggler"
+            className="navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
-            data-bs-target="#brNavContent"
-            aria-controls="brNavContent"
+            data-bs-target="#navbarContent"
+            aria-controls="navbarContent"
             aria-expanded="false"
             aria-label="Toggle navigation"
           >
-            <span className="br-toggler-icon"></span>
+            <span className="navbar-toggler-icon"></span>
           </button>
 
-          <div className="collapse navbar-collapse" id="brNavContent">
-            <ul className="br-nav-links">
-              <li><a href="/dash">Dashboard</a></li>
-              <li><a href="/AddRoom">Post Ad</a></li>
-              <li><a href="/RoomList">Properties</a></li>
-              <li><a href="/Userroom">About Us</a></li>
-              <li className="br-nav-dropdown">
-                <button className="br-account-btn">
-                  Account <span className="br-chevron">▾</span>
-                </button>
-                <ul className="br-dropdown-menu">
-                  <li><a href="/profile">View Profile</a></li>
-                  <li><a href="/MyRoom">My Room</a></li>
-                  <li><a href="/MyListings">My Listings</a></li>
-                  <li><a href="/saved-providers">Bookmarks</a></li>
-                  <li className="br-dropdown-divider"></li>
+          <div className="collapse navbar-collapse" id="navbarContent">
+            <ul className="navbar-nav ms-auto">
+              <li className="nav-item"><a className="nav-link" href="/dash">Dashboard</a></li>
+              <li className="nav-item"><a className="nav-link" href="/AddRoom">Post Add</a></li>
+              <li className="nav-item"><a className="nav-link" href="/RoomList">Properties</a></li>
+              <li className="nav-item"><a className="nav-link" href="/service-providers">Services</a></li>
+              <li className="nav-item"><a className="nav-link" href="/Userroom">About Us</a></li>
+              <li className="nav-item dropdown">
+                <a className="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Account
+                </a>
+                <ul className="dropdown-menu" aria-labelledby="profileDropdown">
+                  <li><a className="dropdown-item" href="/profile">View Profile</a></li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li><a className="dropdown-item" href="/MyRoom">My Room</a></li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li><a className="dropdown-item" href="/MyListings">My Listings</a></li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li><a className="dropdown-item" href="/register-service-provider">Service Provider</a></li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li><a className="dropdown-item" href="/saved-providers">Bookmarks</a></li>
+                  <li><hr className="dropdown-divider" /></li>
                   {sessionStorage.getItem("token") && (
                     <li>
-                      <button className="br-logout-btn" onClick={handleLogout}>
-                        Logout
-                      </button>
+                      <button className="dropdown-item" onClick={handleLogout}><strong>Logout</strong></button>
                     </li>
                   )}
                 </ul>
