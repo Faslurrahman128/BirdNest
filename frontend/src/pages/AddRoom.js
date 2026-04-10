@@ -139,9 +139,9 @@ function AddRoom() {
   };
 
   const handleMobileChange = (e) => {
-    const value = e.target.value;
-    setOwnerContactNumber(value);
-    const error = validateMobileNumber(value);
+    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setOwnerContactNumber(digitsOnly);
+    const error = validateMobileNumber(digitsOnly);
     setErrors({ ...errors, ownerContactNumber: error });
   };
 
@@ -452,6 +452,9 @@ function AddRoom() {
                   </label>
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={10}
                     className={`form-control ${touched.ownerContactNumber && errors.ownerContactNumber ? 'is-invalid' : touched.ownerContactNumber && !errors.ownerContactNumber ? 'is-valid' : ''}`}
                     id="ownerContactNumber"
                     placeholder="0712345678"

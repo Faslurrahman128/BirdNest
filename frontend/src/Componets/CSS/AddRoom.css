@@ -184,7 +184,27 @@
 .negotiable-group {
   display: flex;
   gap: 20px;
-  padding-top: 8px;
+  align-items: center;
+  padding-left: 25px;
+}
+.form-check-label {
+  margin-top: 12px;
+}
+
+.Postadd-container .form-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  padding-left: 25px;
+  width: auto;
+  box-shadow: none;
+}
+
+.Postadd-container .form-check:hover {
+  box-shadow: none;
+  border-color: transparent;
 }
 
 .form-check-inline {
