@@ -256,6 +256,10 @@ body {
   line-height: 1.6;
 }
 
+.br-hero-rating-inline {
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .br-hero-right {
   display: flex;
   flex-direction: column;
@@ -321,7 +325,7 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(300px, 1fr);
   gap: 1.5rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 .br-col-left,
@@ -449,6 +453,128 @@ body {
   font-size: 0.9rem;
   color: var(--br-text-secondary);
   line-height: 1.8;
+}
+
+/* ── Ratings & Reviews ───────────────────────────────────── */
+
+.br-ratings-header {
+  margin-bottom: 1.25rem;
+}
+
+.br-avg-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.br-avg-score {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--br-text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.br-avg-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.br-avg-count {
+  font-size: 0.85rem;
+  color: var(--br-text-muted);
+}
+
+.br-no-rating {
+  font-size: 0.88rem;
+  color: var(--br-text-muted);
+  margin: 0.4rem 0 0;
+}
+
+.br-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.br-review-entry {
+  padding: 1.1rem 0;
+  border-top: 0.5px solid var(--br-border);
+}
+
+.br-review-entry:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.br-review-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.br-reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.br-reviewer-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.br-reviewer-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--br-text-primary);
+  margin-bottom: 3px;
+}
+
+.br-star-row {
+  display: flex;
+  gap: 2px;
+}
+
+.br-star {
+  font-size: 13px;
+  color: #d1d5db;
+  line-height: 1;
+}
+
+.br-star.on {
+  color: var(--br-gold);
+}
+
+.br-rating-badge {
+  flex-shrink: 0;
+  padding: 0.28rem 0.65rem;
+  background: #fef9ee;
+  border: 0.5px solid #fde68a;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.br-review-comment {
+  font-size: 0.875rem;
+  color: var(--br-text-secondary);
+  line-height: 1.75;
+  margin: 0;
+  padding-left: calc(36px + 0.75rem);
 }
 
 /* ── Booking sidebar ─────────────────────────────────────── */
@@ -814,5 +940,13 @@ body {
   .br-thumb {
     width: 58px;
     height: 58px;
+  }
+
+  .br-review-comment {
+    padding-left: 0;
+  }
+
+  .br-avg-score {
+    font-size: 1.6rem;
   }
 }

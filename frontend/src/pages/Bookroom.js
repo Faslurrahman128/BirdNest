@@ -51,72 +51,53 @@ function BookRoomPage() {
     return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   };
 
+  const averageRating =
+    room.ratingHistory && room.ratingHistory.length > 0
+      ? (room.ratingHistory.reduce((sum, r) => sum + r.rating, 0) / room.ratingHistory.length).toFixed(1)
+      : null;
+
   return (
     <>
       {/* Navigation Bar */}
-      <nav className="navbar navbar-expand-lg">
-        <div className="container">
-          <div className="LOGO-container">
-            <a className="nav-link" href="/">
-              <img src={logo} alt="LOGO" width="130" />
-            </a>
-          </div>
-          
+      <nav className="br-navbar">
+        <div className="br-navbar-inner">
+          <a href="/" className="br-logo">
+            <img src={logo} alt="UniStay" className="br-logo-img" />
+          </a>
+
           <button
-            className="navbar-toggler"
+            className="br-navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
-            data-bs-target="#navbarContent"
-            aria-controls="navbarContent"
+            data-bs-target="#brNavContent"
+            aria-controls="brNavContent"
             aria-expanded="false"
             aria-label="Toggle navigation"
           >
-            <span className="navbar-toggler-icon"></span>
+            <span className="br-toggler-icon"></span>
           </button>
-          
-          <div className="collapse navbar-collapse" id="navbarContent">
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item">
-                <a className="nav-link" href="/dash">Dashboard</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/AddRoom">Post Add</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/RoomList">Properties</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/service-providers">Services</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/Userroom">About Us</a>
-              </li>
 
-              <li className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  id="profileDropdown"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Account
-                </a>
-                <ul className="dropdown-menu" aria-labelledby="profileDropdown">
-                  <li><a className="dropdown-item" href="/profile">View Profile</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/MyRoom">My Room</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/MyListings">My Listings</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/register-service-provider">Service Provider</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/saved-providers">Bookmarks</a></li>
-                  <li><hr className="dropdown-divider" /></li>
+          <div className="collapse navbar-collapse" id="brNavContent">
+            <ul className="br-nav-links">
+              <li><a href="/dash">Dashboard</a></li>
+              <li><a href="/AddRoom">Post Ad</a></li>
+              <li><a href="/RoomList">Properties</a></li>
+              <li><a href="/Userroom">About Us</a></li>
+              <li className="br-nav-dropdown">
+                <button className="br-account-btn">
+                  Account <span className="br-chevron">▾</span>
+                </button>
+                <ul className="br-dropdown-menu">
+                  <li><a href="/profile">View Profile</a></li>
+                  <li><a href="/MyRoom">My Room</a></li>
+                  <li><a href="/MyListings">My Listings</a></li>
+                  <li><a href="/saved-providers">Bookmarks</a></li>
+                  <li className="br-dropdown-divider"></li>
                   {sessionStorage.getItem("token") && (
                     <li>
-                      <button className="dropdown-item" onClick={handleLogout}><strong>Logout</strong></button>
+                      <button className="br-logout-btn" onClick={handleLogout}>
+                        Logout
+                      </button>
                     </li>
                   )}
                 </ul>
@@ -141,6 +122,11 @@ function BookRoomPage() {
               Listed on {new Date(room.createdAt).toLocaleDateString("en-LK", {
                 day: "numeric", month: "long", year: "numeric"
               })}
+              {averageRating && (
+                <span className="br-hero-rating-inline">
+                  &nbsp;·&nbsp;⭐ {averageRating} ({room.ratingHistory.length} review{room.ratingHistory.length !== 1 ? "s" : ""})
+                </span>
+              )}
             </p>
           </div>
           <div className="br-hero-right">
@@ -309,12 +295,57 @@ function BookRoomPage() {
 
             </div>
 
-            {/* Help Panel */}
-            <div className="br-panel br-help-panel">
-              <div className="br-section-label">Need help?</div>
-              <p className="br-help-text">
-                You can contact the property owner directly after saving this listing. Our support team is available Mon–Sat, 9am–5pm.
-              </p>
+            <div className="br-panel">
+              <div className="br-panel-section">
+
+                <div className="br-ratings-header">
+                  <div className="br-section-label">Reviews & ratings</div>
+                  {averageRating ? (
+                    <div className="br-avg-rating-row">
+                      <span className="br-avg-score">{averageRating}</span>
+                      <div className="br-avg-stars">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <span key={i} className={`br-star ${i < Math.round(averageRating) ? "on" : ""}`}>★</span>
+                        ))}
+                      </div>
+                      <span className="br-avg-count">
+                        {room.ratingHistory.length} review{room.ratingHistory.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="br-no-rating">No reviews yet.</p>
+                  )}
+                </div>
+
+                {room.ratingHistory && room.ratingHistory.length > 0 && (
+                  <div className="br-reviews-list">
+                    {room.ratingHistory.map((rating, index) => (
+                      <div key={index} className="br-review-entry">
+                        <div className="br-review-top">
+                          <div className="br-reviewer-info">
+                            <div className="br-reviewer-avatar">
+                              {rating.buyerName ? rating.buyerName[0].toUpperCase() : "?"}
+                            </div>
+                            <div>
+                              <div className="br-reviewer-name">{rating.buyerName}</div>
+                              <div className="br-star-row">
+                                {Array.from({ length: 5 }, (_, i) => (
+                                  <span key={i} className={`br-star ${i < rating.rating ? "on" : ""}`}>★</span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="br-rating-badge">{rating.rating}/5</div>
+                        </div>
+                        {rating.description && (
+                          <p className="br-review-comment">{rating.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              </div>
             </div>
 
           </div>
