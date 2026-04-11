@@ -1,15 +1,26 @@
+.cap-on-logo {
+  position: absolute;
+  top: -10px;
+  right: -2px;
+  width: 32px;
+  height: 32px;
+  z-index: 100;
+  pointer-events: none;
+  transform: rotate(-15deg);
+}
 .admin-glass-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.7rem;
+  margin: 0 auto; /* Centers the header */
   background: linear-gradient(90deg, #232946 0%, #1a237e 100%);
-  border-radius: 0 0 40px 40px;
-  padding: 0.7rem 2.2rem 0.7rem 1.2rem;
-  box-shadow: 0 2px 12px rgba(30, 40, 80, 0.13);
+  border-radius: 0 0 35px 35px;
+  padding: 0.25rem 1.5rem;
+  box-shadow: 0 4px 15px rgba(30, 40, 80, 0.1);
   position: relative;
   z-index: 2;
-  width: 100%;
+  width: 95%; /* Decreased width/length */
+  min-height: 62px; /* Decreased height */
 }
 
 .
@@ -43,8 +54,8 @@ admin-glass-header-content-right {
 }
 .admin-glass-header-content-left {
   display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0;
   max-width: none;
 }

@@ -10,7 +10,11 @@ const nodemailer = require("nodemailer");
 require("dotenv").config(); // Load environment variables from .env file
 const fs = require("fs");
 
+
 const app = express();
+
+// Serve static files (images) from the 'uploads' folder (MUST be before any routes)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const PORT = process.env.PORT || 8070; // Fallback to 8070 if PORT is not defined
 
@@ -45,7 +49,7 @@ connection.once("open", () => {
 // Models
 const Room = require("./models/Room");
 const User = require("./models/User"); 
-const Admin = require("./models/Employee");
+const Admin = require("./models/Admin");
 const Ticket = require("./models/Ticket");
 const serviceProvider = require("./models/serviceProvider");
 
@@ -140,14 +144,15 @@ app.post("/Adminregister", async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
+    // Create new user with role 'Admin'
     const newAdmin = new Admin({
       name,
       Lname,
       Phonenumber,
       email,
       password: hashedPassword,
-      createdAt
+      createdAt,
+      role: "Admin"
     });
     await newAdmin.save();
 
@@ -201,8 +206,8 @@ app.post("/login", async (req, res) => {
 // Admin Login Route
 app.post("/admin/login", async (req, res) => {
   const { email, password } = req.body;
-
   try {
+    // Only allow login for accounts in the Admin collection
     const admin = await Admin.findOne({ email });
     if (!admin) return res.status(404).json({ error: "Admin not found" });
 
@@ -230,6 +235,10 @@ app.get("/rooms", async (req, res) => {
     res.status(500).json({ error: "An error occurred while fetching rooms" });
   }
 });
+
+// Staff (Employee) routes
+const employeeController = require("./controllers/employeeController");
+app.use("/employee", employeeController);
 
 // Access Customer routes
 const CustomerRouter = require("./Routes/customerRoute");

@@ -1,20 +1,250 @@
-
-
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import '../Componets/CSS/CustomerLogin.css';
+import axios from "axios";
+import '../Componets/CSS/AdminLogin.css';
+import '../Componets/CSS/theme-decorations.css';
+import AppHeader from '../Componets/AppHeader';
 
-import AppHeader from "../Componets/AppHeader";
+/* ─── Animated Gear SVG ─────────────────────────────────── */
+function GearIcon({ size = 40, className = '', style = {} }) {
+  return (
+    <svg
+      className={className}
+      style={style}
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+    >
+      <path
+        d="M24 16a8 8 0 1 0 0 16 8 8 0 0 0 0-16z"
+        fill="url(#gearCenter)"
+      />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M20.1 4.3a2 2 0 0 1 7.8 0l.9 3.3a14 14 0 0 1 3.4 2l3.3-.9a2 2 0 0 1 2.3 1.1l1.9 3.3a2 2 0 0 1-.5 2.6l-2.7 2a14 14 0 0 1 0 4l2.7 2a2 2 0 0 1 .5 2.6l-1.9 3.3a2 2 0 0 1-2.3 1.1l-3.3-.9a14 14 0 0 1-3.4 2l-.9 3.3a2 2 0 0 1-7.8 0l-.9-3.3a14 14 0 0 1-3.4-2l-3.3.9a2 2 0 0 1-2.3-1.1L8.3 27a2 2 0 0 1 .5-2.6l2.7-2a14 14 0 0 1 0-4l-2.7-2A2 2 0 0 1 8.3 14l1.9-3.3a2 2 0 0 1 2.3-1.1l3.3.9a14 14 0 0 1 3.4-2l.9-3.2zM24 16a8 8 0 1 0 0 16 8 8 0 0 0 0-16z"
+        fill="url(#gearOuter)"
+        opacity="0.9"
+      />
+      <defs>
+        <linearGradient id="gearCenter" x1="16" y1="16" x2="32" y2="32">
+          <stop offset="0%" stopColor="#f59e0b" />
+          <stop offset="100%" stopColor="#d97706" />
+        </linearGradient>
+        <linearGradient id="gearOuter" x1="0" y1="0" x2="48" y2="48">
+          <stop offset="0%" stopColor="#fbbf24" />
+          <stop offset="50%" stopColor="#f59e0b" />
+          <stop offset="100%" stopColor="#b45309" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
 
-const AdminLogin = () => {
+/* ─── Background Gear (decorative) ─────────────────────── */
+function BgGear({ size, top, left, right, bottom, opacity, speed, direction }) {
+  return (
+    <div
+      className="admin-bg-gear"
+      style={{
+        width: size,
+        height: size,
+        top,
+        left,
+        right,
+        bottom,
+        opacity,
+        animation: `admin-gear-spin${direction === 'ccw' ? '-ccw' : ''} ${speed}s linear infinite`,
+      }}
+    >
+      <GearIcon size={size} />
+    </div>
+  );
+}
+
+/* ─── Particle Canvas ───────────────────────────────────── */
+function Particles({ containerRef }) {
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+  const particles = useRef([]);
+  const mouse = useRef({ x: -9999, y: -9999 });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const ctx = canvas.getContext('2d');
+    let W = canvas.width = container.offsetWidth;
+    let H = canvas.height = container.offsetHeight;
+
+    const initParticles = () => {
+      particles.current = Array.from({ length: 70 }, () => ({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.5 + 0.4,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        alpha: Math.random() * 0.4 + 0.1,
+        // amber/gold palette for admin
+        color: `hsl(${Math.random() * 30 + 35}, 90%, ${Math.random() * 20 + 65}%)`,
+      }));
+    };
+    initParticles();
+
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+      const ps = particles.current;
+      const mx = mouse.current.x;
+      const my = mouse.current.y;
+
+      ps.forEach(p => {
+        const dx = p.x - mx;
+        const dy = p.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const force = Math.max(0, 130 - dist) / 130;
+
+        p.x += p.vx + force * (dx / (dist || 1)) * 1.6;
+        p.y += p.vy + force * (dy / (dist || 1)) * 1.6;
+
+        if (p.x < 0) p.x = W;
+        if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H;
+        if (p.y > H) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha + force * 0.5;
+        ctx.fill();
+      });
+
+      // Connection lines near mouse
+      for (let i = 0; i < ps.length; i++) {
+        for (let j = i + 1; j < ps.length; j++) {
+          const dx = ps[i].x - ps[j].x;
+          const dy = ps[i].y - ps[j].y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 85) {
+            const midX = (ps[i].x + ps[j].x) / 2;
+            const midY = (ps[i].y + ps[j].y) / 2;
+            const distFromMouse = Math.sqrt((midX - mx) ** 2 + (midY - my) ** 2);
+            if (distFromMouse < 180) {
+              ctx.beginPath();
+              ctx.moveTo(ps[i].x, ps[i].y);
+              ctx.lineTo(ps[j].x, ps[j].y);
+              ctx.strokeStyle = `rgba(251, 191, 36, ${(1 - d / 85) * 0.3})`;
+              ctx.globalAlpha = 1;
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
+          }
+        }
+      }
+
+      ctx.globalAlpha = 1;
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    const handleResize = () => {
+      W = canvas.width = container.offsetWidth;
+      H = canvas.height = container.offsetHeight;
+      initParticles();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [containerRef]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const onMove = (e) => {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      mouse.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+    const onLeave = () => { mouse.current = { x: -9999, y: -9999 }; };
+    container.addEventListener('mousemove', onMove);
+    container.addEventListener('mouseleave', onLeave);
+    return () => {
+      container.removeEventListener('mousemove', onMove);
+      container.removeEventListener('mouseleave', onLeave);
+    };
+  }, [containerRef]);
+
+  return <canvas ref={canvasRef} className="admin-particle-canvas" />;
+}
+
+/* ─── Main Component ────────────────────────────────────── */
+function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [alertType, setAlertType] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cardVisible, setCardVisible] = useState(false);
+
+  const containerRef = useRef(null);
+  const glowRef = useRef(null);
+  const cardRef = useRef(null);
+  const cursorGearRef = useRef(null);
+  const spinTimerRef = useRef(null);
   const navigate = useNavigate();
+
+  const handleMouseMove = useCallback((e) => {
+    const container = containerRef.current;
+    const glow = glowRef.current;
+    const card = cardRef.current;
+    if (!container || !glow) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Spotlight glow
+    glow.style.left = `${x}px`;
+    glow.style.top = `${y}px`;
+    glow.style.opacity = '1';
+
+    // Gear cursor — tracks mouse with fixed positioning
+    if (cursorGearRef.current) {
+      cursorGearRef.current.style.left = `${e.clientX}px`;
+      cursorGearRef.current.style.top = `${e.clientY}px`;
+      cursorGearRef.current.style.opacity = '1';
+      // Spin fast while moving
+      cursorGearRef.current.classList.add('spinning');
+      clearTimeout(spinTimerRef.current);
+      spinTimerRef.current = setTimeout(() => {
+        if (cursorGearRef.current) cursorGearRef.current.classList.remove('spinning');
+      }, 300);
+    }
+
+    setCardVisible(true);
+
+    if (card) {
+      const cardRect = card.getBoundingClientRect();
+      const cx = cardRect.left + cardRect.width / 2;
+      const cy = cardRect.top + cardRect.height / 2;
+      const rotX = ((e.clientY - cy) / (cardRect.height / 2)) * -7;
+      const rotY = ((e.clientX - cx) / (cardRect.width / 2)) * 7;
+      card.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.025)`;
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (glowRef.current) glowRef.current.style.opacity = '0';
+    if (cursorGearRef.current) cursorGearRef.current.style.opacity = '0';
+    if (cardRef.current)
+      cardRef.current.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)';
+  }, []);
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
@@ -24,11 +254,8 @@ const AdminLogin = () => {
       setMessage(`Welcome back, ${response.data.username}!`);
       setAlertType("success");
       sessionStorage.setItem("token", response.data.token);
-
-      // Check if email contains "service" (case-insensitive)
       const isServiceAgent = email.toLowerCase().includes("service");
       const dashboardPath = isServiceAgent ? "/service-agent-dash" : "/Admindash";
-
       navigate(dashboardPath, {
         state: { message: `Welcome, ${response.data.username}!`, alertType: "success" },
       });
@@ -41,345 +268,191 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="admin-glass-bg">
-      {/* Animated SVG Background Shapes */}
-      <svg className="admin-bg-svg" width="100%" height="100%" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="wave1" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#b7cbe6" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#e0e7ef" stopOpacity="0.2" />
-          </linearGradient>
-          <linearGradient id="wave2" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#4b79a1" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#1a237e" stopOpacity="0.10" />
-          </linearGradient>
-        </defs>
-        <path d="M0,700 Q360,800 720,700 T1440,700 V900 H0 Z" fill="url(#wave1)">
-          <animate attributeName="d" dur="8s" repeatCount="indefinite" values="M0,700 Q360,800 720,700 T1440,700 V900 H0 Z;M0,720 Q360,780 720,720 T1440,720 V900 H0 Z;M0,700 Q360,800 720,700 T1440,700 V900 H0 Z" />
-        </path>
-        <path d="M0,800 Q480,900 960,800 T1440,800 V900 H0 Z" fill="url(#wave2)">
-          <animate attributeName="d" dur="10s" repeatCount="indefinite" values="M0,800 Q480,900 960,800 T1440,800 V900 H0 Z;M0,820 Q480,880 960,820 T1440,820 V900 H0 Z;M0,800 Q480,900 960,800 T1440,800 V900 H0 Z" />
-        </path>
-      </svg>
-      {/* Reusable App Header matching AdminRegister */}
-      <AppHeader appName="Bird Nest" tagline="Empowering Admins, Effortlessly" />
-      <div className="admin-glass-center">
-        <div className="admin-glass-card">
-          <h2 className="admin-glass-title">Admin Login</h2>
-          <span className="admin-glass-subtitle">Sign in to your admin account</span>
-          <form onSubmit={handleAdminLogin} className="admin-glass-form">
-            <div className="admin-glass-form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                className="admin-glass-input"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-            <div className="admin-glass-form-group">
-              <label htmlFor="password">Password</label>
-              <div className="admin-glass-password-wrapper">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="admin-glass-input"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="admin-glass-toggle-password"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  tabIndex={-1}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    // Eye with slash (hide password)
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4b79a1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19C7 19 2.73 15.11 1 12c2.73-4.89 7-8 11-8 2.03 0 3.97.5 5.66 1.38" />
-                      <path d="M1 1l22 22" />
-                      <path d="M9.88 9.88A3 3 0 0 1 12 9c1.66 0 3 1.34 3 3 0 .39-.08.76-.22 1.1" />
-                    </svg>
-                  ) : (
-                    // Eye (show password)
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4b79a1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12C2.73 7.11 7 4 12 4s9.27 3.11 11 8c-1.73 4.89-6 8-11 8s-9.27-3.11-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              <div className="admin-glass-forgot-link">
-                <Link to="/forgot-password" className="admin-glass-link">Forgot password?</Link>
-              </div>
-            </div>
-            <button type="submit" className="admin-glass-btn" disabled={loading}>
-              {loading ? (
-                <span className="admin-glass-spinner"></span>
-              ) : (
-                "Login"
-              )}
-            </button>
-          </form>
-          {message && (
-            <div className={`admin-glass-alert admin-glass-alert-${alertType}`}>
-              {alertType === "success" ? (
-                <span className="admin-glass-alert-icon" role="img" aria-label="success">✔️</span>
-              ) : alertType === "danger" ? (
-                <span className="admin-glass-alert-icon" role="img" aria-label="error">❌</span>
-              ) : null}
-              {message}
-            </div>
-          )}
-          <div className="admin-glass-register-link">
-            Not registered?{' '}
-            <Link to="/AdminRegister" className="admin-glass-link">
-              Register as Admin
-            </Link>
+    <div
+      className="admin-login-root"
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ flexDirection: 'column', justifyContent: 'flex-start' }}
+    >
+      {/* Header */}
+      <AppHeader appName="Bird Nest" tagline="Admin Login" />
+
+      {/* Particle field */}
+      <Particles containerRef={containerRef} />
+
+      {/* Mouse spotlight — amber/gold tint */}
+      <div className="admin-spotlight" ref={glowRef} />
+
+      {/* Gear cursor */}
+      <div className="admin-cursor-gear" ref={cursorGearRef}>
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            fillRule="evenodd" clipRule="evenodd"
+            d="M20.1 4.3a2 2 0 0 1 7.8 0l.9 3.3a14 14 0 0 1 3.4 2l3.3-.9a2 2 0 0 1 2.3 1.1l1.9 3.3a2 2 0 0 1-.5 2.6l-2.7 2a14 14 0 0 1 0 4l2.7 2a2 2 0 0 1 .5 2.6l-1.9 3.3a2 2 0 0 1-2.3 1.1l-3.3-.9a14 14 0 0 1-3.4 2l-.9 3.3a2 2 0 0 1-7.8 0l-.9-3.3a14 14 0 0 1-3.4-2l-3.3.9a2 2 0 0 1-2.3-1.1L8.3 27a2 2 0 0 1 .5-2.6l2.7-2a14 14 0 0 1 0-4l-2.7-2A2 2 0 0 1 8.3 14l1.9-3.3a2 2 0 0 1 2.3-1.1l3.3.9a14 14 0 0 1 3.4-2l.9-3.2zM24 16a8 8 0 1 0 0 16 8 8 0 0 0 0-16z"
+            fill="url(#gcl)"
+          />
+          <defs>
+            <linearGradient id="gcl" x1="0" y1="0" x2="48" y2="48">
+              <stop offset="0%" stopColor="#fde68a"/>
+              <stop offset="50%" stopColor="#f59e0b"/>
+              <stop offset="100%" stopColor="#b45309"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      {/* Ambient orbs */}
+      <div className="admin-orb admin-orb-1" />
+      <div className="admin-orb admin-orb-2" />
+      <div className="admin-orb admin-orb-3" />
+
+      {/* Decorative background gears */}
+      <BgGear size={220} top="-60px" left="-60px"  opacity={0.06} speed={40} />
+      <BgGear size={160} top="10%"  right="-40px"  opacity={0.07} speed={28} direction="ccw" />
+      <BgGear size={300} bottom="-100px" right="5%" opacity={0.05} speed={55} />
+      <BgGear size={100} bottom="20%" left="4%"     opacity={0.08} speed={20} direction="ccw" />
+      <BgGear size={70}  top="45%"  left="12%"      opacity={0.09} speed={15} />
+      <BgGear size={55}  top="20%"  left="38%"      opacity={0.07} speed={12} direction="ccw" />
+
+      {/* Hint */}
+      {!cardVisible && (
+        <div className="admin-hint" style={{ top: '50%' }}>
+          <span className="admin-hint-icon">⚙</span>
+          <p>Move your cursor to access</p>
+          <span className="admin-hint-icon">⚙</span>
+        </div>
+      )}
+
+      {/* Login Card Wrapper */}
+      <div style={{ flex: 1, display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+        {/* Login Card */}
+        <div
+          className={`admin-card ${cardVisible ? 'admin-card--visible' : ''}`}
+          ref={cardRef}
+        >
+          <div className="admin-card-glow-border" />
+
+        {/* Header */}
+        <div className="admin-card-header">
+          <div className="admin-logo-ring">
+            <GearIcon size={34} className="admin-logo-gear" />
+          </div>
+          <h1 className="admin-card-title">Admin Control</h1>
+          <p className="admin-card-subtitle">Authorized personnel only</p>
+          {/* Access badge */}
+          <div className="admin-access-badge">
+            <span className="admin-access-dot" />
+            SYSTEM ACCESS
           </div>
         </div>
+
+        {/* Form */}
+        <form onSubmit={handleAdminLogin} className="admin-form">
+          <div className="admin-field">
+            <label htmlFor="admin-email" className="admin-label">Email Address</label>
+            <div className="admin-input-wrapper">
+              <span className="admin-input-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </span>
+              <input
+                id="admin-email"
+                type="email"
+                className="admin-input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@birднest.com"
+                required
+                autoComplete="email"
+              />
+            </div>
+          </div>
+
+          <div className="admin-field">
+            <label htmlFor="admin-password" className="admin-label">Password</label>
+            <div className="admin-input-wrapper">
+              <span className="admin-input-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input
+                id="admin-password"
+                type={showPassword ? "text" : "password"}
+                className="admin-input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter secure password"
+                required
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className="admin-toggle-pw"
+                onClick={() => setShowPassword(v => !v)}
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.06 10.06 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+            <div className="admin-forgot-row">
+              <Link to="/forgot-password" className="admin-forgot-link">Forgot password?</Link>
+            </div>
+          </div>
+
+          {message && (
+            <div className={`admin-alert admin-alert--${alertType}`}>
+              {alertType === 'success' ? '✓' : '✕'} {message}
+            </div>
+          )}
+
+          <button type="submit" className="admin-btn" disabled={loading}>
+            {loading ? (
+              <span className="admin-btn-loading">
+                <GearIcon size={18} className="admin-btn-gear-spin" />
+                Authenticating...
+              </span>
+            ) : (
+              <span className="admin-btn-content">
+                <GearIcon size={18} className="admin-btn-gear" />
+                Access System
+              </span>
+            )}
+          </button>
+        </form>
+
+        <div className="admin-card-footer">
+          <span>Not an admin? </span>
+          <Link to="/StaffLogin" className="admin-footer-link">Staff Login</Link>
+        </div>
+
+        {/* Bottom security label */}
+        <div className="admin-security-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Secured connection · Bird Nest {new Date().getFullYear()}
+        </div>
       </div>
-      <div className="admin-glass-copyright">
-        &copy; {new Date().getFullYear()} Bird Nest. All rights reserved.
       </div>
-      {/* Glassmorphism Styles (except header, now in AppHeader) */}
-      <style>{`
-        .admin-bg-svg {
-          position: absolute;
-          left: 0; top: 0; width: 100vw; height: 100vh;
-          z-index: 0;
-          pointer-events: none;
-        }
-        .admin-glass-bg {
-          min-height: 100vh;
-          width: 100vw;
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-        }
-        .admin-glass-bg::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0; bottom: 0;
-          z-index: 0;
-          background: linear-gradient(120deg, #e0e7ef 0%, #c9d6ff 40%, #b7cbe6 100%);
-          animation: admin-bg-gradient 8s ease-in-out infinite alternate;
-        }
-        .admin-glass-bg::after {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0; bottom: 0;
-          z-index: 1;
-          background: radial-gradient(circle at 80% 20%, rgba(76,175,255,0.10) 0%, rgba(255,255,255,0.00) 60%),
-                      radial-gradient(circle at 20% 80%, rgba(76,175,80,0.10) 0%, rgba(255,255,255,0.00) 60%);
-          pointer-events: none;
-        }
-        @keyframes admin-bg-gradient {
-          0% {
-            background-position: 0% 50%;
-          }
-          100% {
-            background-position: 100% 50%;
-          }
-        }
-        .admin-glass-center, .admin-glass-copyright {
-          position: relative;
-          z-index: 2;
-        }
-        .admin-glass-center {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .admin-glass-card {
-          background: rgba(255,255,255,0.25);
-          border-radius: 22px;
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border: 1.5px solid rgba(255,255,255,0.25);
-          max-width: 410px;
-          width: 100%;
-          padding: 2.7rem 2.2rem 2.2rem 2.2rem;
-          margin: 2.5rem 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          position: relative;
-        }
-        .admin-glass-title {
-          color: #1a237e;
-          font-size: 2.1rem;
-          font-weight: 700;
-          margin-bottom: 0.5rem;
-          letter-spacing: 0.5px;
-        }
-        .admin-glass-subtitle {
-          color: #4b79a1;
-          font-size: 1.05rem;
-          margin-bottom: 1.7rem;
-        }
-        .admin-glass-form {
-          width: 100%;
-        }
-        .admin-glass-form-group {
-          margin-bottom: 1.2rem;
-          display: flex;
-          flex-direction: column;
-        }
-        .admin-glass-form-group label {
-          color: #232f3e;
-          font-weight: 600;
-          margin-bottom: 0.4rem;
-        }
-        .admin-glass-password-wrapper {
-          display: flex;
-          align-items: center;
-          position: relative;
-        }
-        .admin-glass-toggle-password {
-          background: none;
-          border: none;
-          outline: none;
-          cursor: pointer;
-          position: absolute;
-          right: 0.7rem;
-          top: 50%;
-          transform: translateY(-50%);
-          padding: 0 0.2rem;
-          z-index: 2;
-          display: flex;
-          align-items: center;
-        }
-        .admin-glass-forgot-link {
-          margin-top: 0.3rem;
-          text-align: right;
-        }
-        .admin-glass-input {
-          width: 100%;
-          padding: 0.7rem 1rem;
-          border: 1.5px solid #dbe2ef;
-          border-radius: 10px;
-          font-size: 1rem;
-          background: rgba(255,255,255,0.7);
-          box-shadow: 0 2px 8px rgba(44, 62, 80, 0.04);
-          transition: border 0.2s, box-shadow 0.2s;
-          padding-right: 2.2rem;
-        }
-        .admin-glass-input:focus {
-          border-color: #4b79a1;
-          outline: none;
-          box-shadow: 0 4px 16px rgba(44, 62, 80, 0.10);
-        }
-        .admin-glass-btn {
-          width: 100%;
-          padding: 0.9rem 0;
-          background: linear-gradient(90deg, #4b79a1 0%, #1a237e 100%);
-          color: #fff;
-          font-size: 1.15rem;
-          font-weight: 700;
-          border: none;
-          border-radius: 10px;
-          box-shadow: 0 2px 8px rgba(44, 62, 80, 0.10);
-          cursor: pointer;
-          margin-top: 0.5rem;
-          transition: background 0.2s, box-shadow 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-        }
-        .admin-glass-btn:hover {
-          background: linear-gradient(90deg, #1a237e 0%, #4b79a1 100%);
-          box-shadow: 0 4px 16px rgba(44, 62, 80, 0.16);
-        }
-        .admin-glass-btn:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-        .admin-glass-spinner {
-          width: 22px;
-          height: 22px;
-          border: 3px solid #fff;
-          border-top: 3px solid #4b79a1;
-          border-radius: 50%;
-          animation: admin-glass-spin 0.8s linear infinite;
-          display: inline-block;
-        }
-        @keyframes admin-glass-spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        .admin-glass-alert {
-          width: 100%;
-          margin-top: 1.2rem;
-          padding: 0.7rem 1rem;
-          border-radius: 8px;
-          font-size: 1rem;
-          text-align: center;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          justify-content: center;
-        }
-        .admin-glass-alert-success {
-          background: rgba(76, 175, 80, 0.13);
-          color: #388e3c;
-          border: 1px solid #a5d6a7;
-        }
-        .admin-glass-alert-danger {
-          background: rgba(244, 67, 54, 0.13);
-          color: #c62828;
-          border: 1px solid #ef9a9a;
-        }
-        .admin-glass-alert-icon {
-          font-size: 1.3rem;
-          margin-right: 0.2rem;
-        }
-        .admin-glass-register-link {
-          text-align: center;
-          margin-top: 2.1rem;
-          color: #888;
-          font-size: 1rem;
-        }
-        .admin-glass-link {
-          color: #1a237e;
-          font-weight: 600;
-          text-decoration: underline;
-          margin-left: 2px;
-        }
-        .admin-glass-link:hover {
-          color: #4b79a1;
-        }
-        .admin-glass-copyright {
-          width: 100%;
-          text-align: center;
-          color: #888;
-          font-size: 0.98rem;
-          margin-bottom: 1.2rem;
-          margin-top: 1.5rem;
-        }
-        @media (max-width: 600px) {
-          .admin-bg-svg {
-            height: 320px;
-            min-height: 220px;
-          }
-          .admin-glass-card {
-            padding: 1.2rem 0.7rem 1rem 0.7rem;
-            max-width: 98vw;
-          }
-        }
-      `}</style>
     </div>
   );
-};
+}
 
 export default AdminLogin;
