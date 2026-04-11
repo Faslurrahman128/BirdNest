@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Employee = require('../models/Employee');
 const bcrypt = require('bcryptjs');
+const { sendCredentialEmail } = require('../utils/mailers');
 
 // Staff registration endpoint
 router.post('/register', async (req, res) => {
@@ -25,7 +26,39 @@ router.post('/register', async (req, res) => {
       createdAt
     });
     await newStaff.save();
-    res.json({ message: 'Staff registered successfully' });
+    
+    // Send Credentials via Email
+    const emailSent = await sendCredentialEmail(newStaff, password);
+    
+    res.json({ 
+      message: 'Staff registered successfully', 
+      emailSent,
+      id: newStaff._id, // Return ID for immediate follow-up actions
+      info: emailSent ? 'Credentials sent to email.' : 'Registration successful but email failed to send. Check server configuration.'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Route to manually resend credentials
+router.post('/send-credentials', async (req, res) => {
+  const { staffId, password } = req.body; // In a production system, we might prompt for a new temp password or use a reset link
+  try {
+    if (!staffId || !password) {
+      return res.status(400).json({ error: 'Staff ID and temporary password are required.' });
+    }
+    const staff = await Employee.findById(staffId);
+    if (!staff) {
+      return res.status(404).json({ error: 'Staff member not found.' });
+    }
+
+    const emailSent = await sendCredentialEmail(staff, password);
+    if (!emailSent) {
+      return res.status(500).json({ error: 'Failed to send credential email.' });
+    }
+
+    res.json({ message: 'Credentials successfully resent to staff email.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

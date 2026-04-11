@@ -223,6 +223,10 @@ function AdminDashboardContent() {
       setRegistrationMessage("Passwords do not match. Please try again.");
       return;
     }
+    if (password.length < 8) {
+      setRegistrationMessage("Security Requirement: Password must be at least 8 characters long.");
+      return;
+    }
     const newStaff = {
       name,
       Lname: lname,
@@ -233,13 +237,27 @@ function AdminDashboardContent() {
       createdAt,
     };
     try {
-      await axios.post("http://localhost:8070/employee/register", newStaff, {
+      const response = await axios.post("http://localhost:8070/employee/register", newStaff, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setRegistrationMessage("Staff registration successful!");
       fetchStaff(); // Refresh the counts immediately after success
+      
+      const responseData = response.data;
+      
+      // Store current reg info for potential retry
+      setLastRegisteredStaff({ 
+        id: responseData.id || "new", 
+        email, 
+        name,
+        emailSent: responseData.emailSent,
+        info: responseData.info
+      }); 
+      setLastRegPassword(password); // Store plain text temp pass for the success card retry button
+      setRegFlowState('success'); // Switch to success view
+
+      // Clear the form fields for next use
       setName("");
       setLName("");
       setPhoneNumber("");
@@ -248,12 +266,17 @@ function AdminDashboardContent() {
       setConfirmPassword("");
       setRole("");
       setCreatedAt("");
+      setRegistrationMessage("");
     } catch (err) {
       setRegistrationMessage(
         err.response ? err.response.data.error : "An error occurred during staff registration."
       );
     }
   };
+
+  const [lastRegisteredStaff, setLastRegisteredStaff] = useState(null);
+  const [regFlowState, setRegFlowState] = useState('form'); // 'form' or 'success'
+  const [lastRegPassword, setLastRegPassword] = useState(''); // Temp store for retry functionality 
 
   // Toggle Staff Status Handler
   const handleToggleStaffStatus = async (staffId, currentStatus) => {
@@ -322,6 +345,28 @@ function AdminDashboardContent() {
     } catch (err) {
       console.error("Bulk delete error:", err);
       alert(err.response?.data?.error || "Bulk deletion failed.");
+    }
+  };
+
+  // Resend Credentials Handler
+  const handleResendCredentials = async (staffId, staffName) => {
+    const tempPassword = window.prompt(`Enter a temporary password to resend to ${staffName}:`);
+    if (!tempPassword) return;
+
+    try {
+      setLoading(true);
+      await axios.post("http://localhost:8070/employee/send-credentials", {
+        staffId,
+        password: tempPassword
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert(`Credentials successfully resent to ${staffName}.`);
+      setLoading(false);
+    } catch (err) {
+      console.error("Resend error:", err);
+      alert(err.response?.data?.error || "Failed to resend email.");
+      setLoading(false);
     }
   };
 
@@ -1059,6 +1104,36 @@ function AdminDashboardContent() {
                                 {staff.isActive !== false ? 'Deactivate' : 'Activate'}
                               </button>
                             )}
+
+                            {/* Resend Credentials Button */}
+                            {staff.role !== 'Admin' && (
+                              <button
+                                className="btn btn-sm"
+                                title="Resend Credentials via Email"
+                                style={{
+                                  borderRadius: '50%',
+                                  width: '35px',
+                                  height: '35px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  border: '1px solid #e2e8f0',
+                                  backgroundColor: '#fff',
+                                  transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#f1f5f9';
+                                  e.currentTarget.style.borderColor = '#1a237e';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#fff';
+                                  e.currentTarget.style.borderColor = '#e2e8f0';
+                                }}
+                                onClick={() => handleResendCredentials(staff._id, staff.name)}
+                              >
+                                ✉️
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1088,136 +1163,198 @@ function AdminDashboardContent() {
                 borderRadius: 24,
                 border: '1px solid rgba(226, 232, 240, 0.8)'
               }}>
-                {registrationMessage && (
-                  <div className={`alert ${registrationMessage.includes("successful") ? "alert-success" : "alert-danger"}`} 
-                    style={{ 
-                      borderRadius: 12, 
-                      marginBottom: 30, 
-                      border: 'none',
-                      padding: '15px 20px',
-                      fontWeight: 500,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
-                    }}>
-                    {registrationMessage}
-                  </div>
-                )}
-
-                <form onSubmit={handleStaffRegistration} autoComplete="off">
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
-                    {[
-                      { label: "First Name", value: name, setter: setName, placeholder: "First name", required: true, type: "text" },
-                      { label: "Last Name", value: lname, setter: setLName, placeholder: "Last name", required: false, type: "text" },
-                      { label: "Phone Number", value: phoneNumber, setter: setPhoneNumber, placeholder: "Ex: 0712345678", required: true, type: "tel" },
-                      { label: "Email Address", value: email, setter: setEmail, placeholder: "staff@birdnest.com", required: true, type: "email" },
-                      { label: "Assigned Role", value: role, setter: setRole, placeholder: "Select Role", required: true, type: "select" },
-                      { label: "Password", value: password, setter: setPassword, placeholder: "Temporary password", required: true, type: "password" },
-                      { label: "Confirm Password", value: confirmPassword, setter: setConfirmPassword, placeholder: "Repeat password", required: true, type: "password" },
-                    ].map((field, idx) => (
-                      <div key={idx} className="admin-glass-form-group" style={{ 
-                        gridColumn: field.label === "Confirm Password" && idx % 2 === 0 ? "span 2" : "span 1" 
-                      }}>
-                        <label style={{ 
-                          fontWeight: 700, 
-                          color: '#64748b', 
-                          fontSize: '0.75rem', 
-                          textTransform: 'uppercase', 
-                          letterSpacing: '0.05em',
-                          marginBottom: '8px',
-                          display: 'block'
+                {regFlowState === 'form' ? (
+                  <>
+                    {registrationMessage && (
+                      <div className={`alert ${registrationMessage.includes("successful") || registrationMessage.includes("✅") ? "alert-success" : "alert-danger"}`} 
+                        style={{ 
+                          borderRadius: 12, 
+                          marginBottom: 30, 
+                          border: 'none',
+                          padding: '15px 20px',
+                          fontWeight: 500,
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
                         }}>
-                          {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
-                        </label>
-                        
-                        {field.type === "select" ? (
-                          <select 
-                            className="admin-glass-input w-100" 
-                            value={field.value} 
-                            onChange={(e) => field.setter(e.target.value)}
-                            required={field.required}
-                            style={{ 
-                              backgroundColor: '#f8fafc', 
-                              border: '1.5px solid #e2e8f0',
-                              borderRadius: '12px',
-                              padding: '12px 16px',
-                              fontSize: '0.95rem',
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            <option value="">{field.placeholder}</option>
-                            <option value="Staff">Regular Staff</option>
-                            <option value="Customer_Care">Customer Care</option>
-                            <option value="Service_Agent">Service Agent</option>
-                          </select>
+                        {registrationMessage}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleStaffRegistration} autoComplete="off">
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+                        {[
+                          { label: "First Name", value: name, setter: setName, placeholder: "First name", required: true, type: "text" },
+                          { label: "Last Name", value: lname, setter: setLName, placeholder: "Last name", required: false, type: "text" },
+                          { label: "Phone Number", value: phoneNumber, setter: setPhoneNumber, placeholder: "Ex: 0712345678", required: true, type: "tel" },
+                          { label: "Email Address", value: email, setter: setEmail, placeholder: "staff@birdnest.com", required: true, type: "email" },
+                          { label: "Assigned Role", value: role, setter: setRole, placeholder: "Select Role", required: true, type: "select" },
+                          { label: "Password", value: password, setter: setPassword, placeholder: "Temporary password", required: true, type: "password" },
+                          { label: "Confirm Password", value: confirmPassword, setter: setConfirmPassword, placeholder: "Repeat password", required: true, type: "password" },
+                        ].map((field, idx) => (
+                          <div key={idx} className="admin-glass-form-group" style={{ 
+                            gridColumn: field.label === "Confirm Password" && idx % 2 === 0 ? "span 2" : "span 1" 
+                          }}>
+                            <label style={{ 
+                              display: 'block', 
+                              marginBottom: 8, 
+                              fontSize: '0.75rem', 
+                              fontWeight: 700, 
+                              color: '#64748b', 
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
+                            </label>
+                            {field.type === "select" ? (
+                              <select 
+                                value={field.value} 
+                                onChange={(e) => field.setter(e.target.value)} 
+                                required={field.required}
+                                className="form-control admin-glass-input"
+                                style={{
+                                  background: '#f8fafc',
+                                  border: '1px solid #e2e8f0',
+                                  borderRadius: 12,
+                                  height: '48px',
+                                  padding: '0 16px',
+                                  transition: 'all 0.2s',
+                                  fontSize: '0.95rem'
+                                }}
+                              >
+                                <option value="">{field.placeholder}</option>
+                                <option value="Staff">Regular Staff</option>
+                                <option value="Customer_Care">Customer Care</option>
+                                <option value="Service_Agent">Service Agent</option>
+                              </select>
+                            ) : (
+                              <input 
+                                type={field.type} 
+                                value={field.value} 
+                                onChange={(e) => field.setter(e.target.value)} 
+                                placeholder={field.placeholder} 
+                                required={field.required}
+                                className="form-control admin-glass-input"
+                                style={{
+                                  background: '#f8fafc',
+                                  border: '1px solid #e2e8f0',
+                                  borderRadius: 12,
+                                  height: '48px',
+                                  padding: '0 16px',
+                                  transition: 'all 0.2s',
+                                  fontSize: '0.95rem'
+                                }}
+                                onFocus={(e) => {
+                                  e.target.style.borderColor = '#1a237e';
+                                  e.target.style.background = '#fff';
+                                  e.target.style.boxShadow = '0 0 0 4px rgba(26, 35, 126, 0.05)';
+                                }}
+                                onBlur={(e) => {
+                                  e.target.style.borderColor = '#e2e8f0';
+                                  e.target.style.background = '#f8fafc';
+                                  e.target.style.boxShadow = 'none';
+                                }}
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-5 text-center">
+                        <button 
+                          type="submit" 
+                          className="btn admin-glass-btn-primary"
+                          disabled={loading}
+                          style={{ 
+                            padding: '14px 40px', 
+                            fontSize: '1rem', 
+                            fontWeight: 700, 
+                            borderRadius: 30,
+                            background: '#1a237e',
+                            color: 'white',
+                            border: 'none',
+                            boxShadow: '0 8px 25px rgba(26, 35, 126, 0.2)',
+                            transition: 'all 0.3s ease',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '12px'
+                          }}
+                        >
+                          {loading ? "Processing..." : (
+                            <>
+                              Complete Registration
+                              <span style={{ fontSize: '1.2rem' }}>→</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                ) : (
+                  /* Success Mode View */
+                  <div className="text-center py-4">
+                    <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🎯</div>
+                    <h3 style={{ color: '#1a237e', fontWeight: 700, marginBottom: '8px' }}>Registration Complete!</h3>
+                    <p style={{ color: '#64748b', marginBottom: '30px' }}>
+                      Staff account for <strong>{lastRegisteredStaff?.name}</strong> has been successfully created.
+                    </p>
+
+                    <div style={{ 
+                      background: '#f8fafc', 
+                      borderRadius: 16, 
+                      padding: '24px', 
+                      margin: '0 auto 32px', 
+                      maxWidth: '500px',
+                      border: '1px solid #e2e8f0',
+                      textAlign: 'left'
+                    }}>
+                      <div className="d-flex align-items-center justify-content-between mb-3">
+                        <span style={{ fontWeight: 600, color: '#444' }}>Credential Email Status:</span>
+                        {lastRegisteredStaff?.emailSent ? (
+                          <span style={{ color: '#059669', fontWeight: 700, fontSize: '0.9rem' }}>✅ SENT SUCCESSFULLY</span>
                         ) : (
-                          <input 
-                            type={field.type} 
-                            className="admin-glass-input w-100" 
-                            value={field.value} 
-                            onChange={(e) => field.setter(e.target.value)} 
-                            required={field.required} 
-                            placeholder={field.placeholder}
-                            style={{ 
-                              backgroundColor: '#f8fafc', 
-                              border: '1.5px solid #e2e8f0',
-                              borderRadius: '12px',
-                              padding: '12px 16px',
-                              fontSize: '0.95rem',
-                              transition: 'all 0.3s ease'
-                            }}
-                            onFocus={(e) => {
-                              e.target.style.borderColor = '#1a237e';
-                              e.target.style.backgroundColor = '#fff';
-                              e.target.style.boxShadow = '0 0 0 4px rgba(26, 35, 126, 0.05)';
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.borderColor = '#e2e8f0';
-                              e.target.style.backgroundColor = '#f8fafc';
-                              e.target.style.boxShadow = 'none';
-                            }}
-                          />
+                          <span style={{ color: '#dc2626', fontWeight: 700, fontSize: '0.9rem' }}>⚠️ DELIVERY FAILED</span>
                         )}
                       </div>
-                    ))}
-                  </div>
-                  
-                  <div style={{ marginTop: '3rem' }}>
+
+                      <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '20px' }}>
+                        {lastRegisteredStaff?.emailSent 
+                          ? `New credentials have been delivered to ${lastRegisteredStaff?.email}.`
+                          : `The system could not deliver credentials to ${lastRegisteredStaff?.email}. Please check your SMTP settings and retry below.`
+                        }
+                      </p>
+
+                      <div className="d-flex gap-3">
+                        <button 
+                          className="btn btn-primary flex-grow-1"
+                          style={{ borderRadius: 12, padding: '10px', background: '#1a237e', border: 'none' }}
+                          onClick={() => handleResendCredentials(lastRegisteredStaff?.id, lastRegisteredStaff?.name)}
+                        >
+                          {lastRegisteredStaff?.emailSent ? "Resend Email" : "Send Email Now"}
+                        </button>
+                        <button 
+                          className="btn btn-outline-secondary"
+                          style={{ borderRadius: 12, padding: '10px' }}
+                          onClick={() => {
+                            setRegFlowState('form');
+                            setLastRegisteredStaff(null);
+                          }}
+                        >
+                          Finish
+                        </button>
+                      </div>
+                    </div>
+
                     <button 
-                      type="submit" 
-                      className="btn w-100 py-3" 
-                      style={{ 
-                        borderRadius: 30, 
-                        fontWeight: 700, 
-                        backgroundColor: '#1a237e', 
-                        color: '#fff',
-                        fontSize: '1rem',
-                        letterSpacing: '0.02em',
-                        transition: 'all 0.3s ease',
-                        boxShadow: '0 8px 20px rgba(26, 35, 126, 0.15)',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#283593';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 12px 28px rgba(26, 35, 126, 0.25)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1a237e';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(26, 35, 126, 0.15)';
+                      className="btn" 
+                      style={{ color: '#1a237e', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'underline' }}
+                      onClick={() => {
+                        setRegFlowState('form');
+                        setLastRegisteredStaff(null);
                       }}
                     >
-                      Complete Registration
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                      </svg>
+                      + Register Another Staff Member
                     </button>
                   </div>
-                </form>
+                )}
               </div>
             </section>
           )}
