@@ -1,9 +1,10 @@
-import logo from "../Componets/assets/APPLOGO.png";
 import React, { useState } from "react";
+import { ThemeProvider, useTheme, THEMES } from "../ThemeContext";
+import AppHeader from "../Componets/AppHeader";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 
-function AddAdmin() {
+function AdminRegisterContent() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,9 +77,16 @@ function AddAdmin() {
       .finally(() => setLoading(false));
   }
 
+  const { theme } = useTheme();
+  React.useEffect(() => {
+    if (!theme) return;
+    // Log the screen resolution whenever the theme changes
+    console.log('Theme selected:', theme, 'Resolution:', window.innerWidth + 'x' + window.innerHeight);
+  }, [theme]);
+
   return (
-    <div>
-      <div className="admin-glass-bg">
+    <>
+      <div className={`admin-glass-bg theme-${theme}`} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         {/* Animated SVG Background Shapes */}
         <svg className="admin-bg-svg" width="100%" height="100%" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -98,21 +106,10 @@ function AddAdmin() {
             <animate attributeName="d" dur="10s" repeatCount="indefinite" values="M0,800 Q480,900 960,800 T1440,800 V900 H0 Z;M0,820 Q480,880 960,820 T1440,820 V900 H0 Z;M0,800 Q480,900 960,800 T1440,800 V900 H0 Z" />
           </path>
         </svg>
-        {/* Header at the top, outside the card */}
-        <header className="admin-glass-header admin-glass-header-left" style={{ width: '100vw', left: 0, right: 0, marginLeft: 0, marginRight: 0, borderRadius: '0 0 40px 40px', boxSizing: 'border-box', position: 'relative' }}>
-          <div className="admin-glass-header-content-left">
-            <img src={logo} alt="Bird Nest Logo" className="admin-glass-logo" />
-                      <div className="admin-glass-header-title">
-                        <span className="admin-glass-app-name">Bird Nest</span>
-                        <span className="admin-glass-tagline">Empowering Admins, Effortlessly</span>
-                      </div>
-                    </div>
-                    <div className="admin-glass-header-content-right">
-                      <span className="admin-glass-admin-indicator">Admin</span>
-                    </div>
-                  </header>
-                  <div className="admin-glass-center">
-                    <div className="admin-glass-card">
+        {/* App Header */}
+        <AppHeader appName="Bird Nest" tagline="Admin Registration" />
+        <div className="admin-glass-center" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', zIndex: 2 }}>
+          <div className="admin-glass-card" style={{ margin: 0 }}>
                       <h2 className="admin-glass-title">Admin Registration</h2>
                       <form className="admin-glass-form" onSubmit={sendData} autoComplete="off">
                         <div className="admin-glass-form-group-row">
@@ -503,8 +500,11 @@ function AddAdmin() {
 
         `}</style>
       </div>
-    </div>
+    </>
   );
 }
+
+// Use global ThemeProvider (do not wrap here)
+const AddAdmin = () => <AdminRegisterContent />;
 
 export default AddAdmin;

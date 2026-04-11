@@ -6,12 +6,24 @@ const EmployeeSchema = new Schema({
     name: { type: String, required: true },
     Lname: { type: String, required: false },
     Phonenumber: { type: Number, required: false },
-    email: {type: String,required: true,unique: true, email: {type: String,required: true,unique: true, 
-            match: [/\S+@\S+\.\S+/, 'Please use a valid email address'], },},
+    email: {
+        type: String,
+        required: true,
+        unique: true, 
+        match: [/\S+@\S+\.\S+/, 'Please use a valid email address'], 
+    },
 
     password: {type: String,required: true,minlength: 6, },
 
-    role: {type: String,enum: ['Boarding_Manager', 'Customer_Care_Manager', 'Service_Agent'],required: false, 
+    role: {
+        type: String,
+        enum: ['Admin', 'Staff', 'Customer_Care'],
+        required: true,
+    },
+
+    isActive: {
+        type: Boolean,
+        default: true,
     },
 
     createdAt: {type: Date,default: Date.now,},

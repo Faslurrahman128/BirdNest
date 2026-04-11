@@ -1,12 +1,5 @@
-import ramadanMoon from '../assets/ramadan-moon.jpg';
-import ramadanLantern from '../assets/ramadan-lantern.jpg';
-import christmasBg from '../assets/christmas-bg.jpg';
-import tree from '../assets/tree.avif';
-import fireworks from '../assets/fireworks.png';
-import fireworkIcon from '../assets/firework-icon.png';
 import React, { useEffect, useState } from "react";
 import { ThemeProvider, useTheme, THEMES } from "../ThemeContext";
-import ThemeSwitcher from "../Componets/ThemeSwitcher";
 import "../Componets/CSS/theme-decorations.css";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -17,30 +10,31 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 function AdminDashboardContent() {
-    // Handle rejection of a room (must be inside component)
-    const handleRejection = async (id) => {
-      try {
-        setLoading(true);
-        await axios.put(
-          `http://localhost:8070/Room/verify/${id}`,
-          { isVerified: false, rejected: true },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        // Refetch rooms to ensure state is correct
-        await fetchRooms();
-        setSelectedRoom(null);
-        setError("");
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to reject room.");
-        setLoading(false);
-      }
-    };
+  // Handle rejection of a room (must be inside component)
+  const handleRejection = async (id) => {
+    try {
+      setLoading(true);
+      await axios.put(
+        `http://localhost:8070/Room/verify/${id}`,
+        { isVerified: false, rejected: true },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Refetch rooms to ensure state is correct
+      await fetchRooms();
+      setSelectedRoom(null);
+      setError("");
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to reject room.");
+      setLoading(false);
+    }
+  };
   const location = useLocation();
   const message1 = location.state?.message || "";
   const [activeSection, setActiveSection] = useState("room");
   const [unverifiedRooms, setUnverifiedRooms] = useState([]);
   const [verifiedRooms, setVerifiedRooms] = useState([]);
+  const [allStaff, setAllStaff] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -56,6 +50,12 @@ function AdminDashboardContent() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [createdAt, setCreatedAt] = useState("");
   const [registrationMessage, setRegistrationMessage] = useState("");
+
+  // Staff registration state
+  const [role, setRole] = useState("");
+
+  // Staff selection state for bulk actions
+  const [selectedStaffIds, setSelectedStaffIds] = useState([]);
 
   const token = sessionStorage.getItem("token");
 
@@ -96,10 +96,34 @@ function AdminDashboardContent() {
     }
   };
 
+  // Staff fetch logic
+  const fetchStaff = async () => {
+    try {
+      console.log("Fetching staff data...");
+      const response = await axios.get("http://localhost:8070/employee/all", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log("Staff data received:", response.data);
+      setAllStaff(response.data);
+    } catch (err) {
+      console.error("Error fetching staff:", err);
+    }
+  };
+
   useEffect(() => {
     fetchRooms();
+    fetchStaff();
     // eslint-disable-next-line
   }, [token]);
+
+  // Aggregate stats for the professional dashboard cards
+  const summaryStats = {
+    totalRooms: verifiedRooms.length + unverifiedRooms.length,
+    pendingVerifications: unverifiedRooms.length,
+    verifiedListings: verifiedRooms.filter(r => !r.rejected).length,
+    rejectedListings: verifiedRooms.filter(r => r.rejected).length,
+    staffCount: allStaff.length,
+  };
 
   const handleSectionClick = (section) => {
     setActiveSection(section);
@@ -188,14 +212,127 @@ function AdminDashboardContent() {
     }
   };
 
-    // Logout function
-    const handleLogout = () => {
-      // Remove token from sessionstorage
-      sessionStorage.removeItem("token");
-      // Redirect to login page
-      navigate("/StaffLogin", { replace: true });
+  // Staff Registration Handler
+  const handleStaffRegistration = async (e) => {
+    e.preventDefault();
+    if (!name || !phoneNumber || !email || !password || !role) {
+      setRegistrationMessage("Please fill out all required fields (First Name, Phone Number, Email, Password, Role).");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setRegistrationMessage("Passwords do not match. Please try again.");
+      return;
+    }
+    const newStaff = {
+      name,
+      Lname: lname,
+      Phonenumber: phoneNumber,
+      email,
+      password,
+      role,
+      createdAt,
     };
-  
+    try {
+      await axios.post("http://localhost:8070/employee/register", newStaff, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setRegistrationMessage("Staff registration successful!");
+      fetchStaff(); // Refresh the counts immediately after success
+      setName("");
+      setLName("");
+      setPhoneNumber("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setRole("");
+      setCreatedAt("");
+    } catch (err) {
+      setRegistrationMessage(
+        err.response ? err.response.data.error : "An error occurred during staff registration."
+      );
+    }
+  };
+
+  // Toggle Staff Status Handler
+  const handleToggleStaffStatus = async (staffId, currentStatus) => {
+    try {
+      await axios.put(`http://localhost:8070/employee/status/${staffId}`, {
+        isActive: !currentStatus
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Refresh the staff list to reflect changes
+      fetchStaff();
+    } catch (err) {
+      console.error("Error toggling staff status:", err);
+      setError("Failed to update staff status.");
+    }
+  };
+
+  // Selection handlers for bulk delete
+  const handleSelectStaff = (id, role) => {
+    if (role === 'Admin') return; // Cannot select admins
+    setSelectedStaffIds(prev =>
+      prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllStaff = () => {
+    const deletableStaff = allStaff.filter(s => s.role !== 'Admin');
+    if (selectedStaffIds.length === deletableStaff.length) {
+      setSelectedStaffIds([]); // Deselect all
+    } else {
+      setSelectedStaffIds(deletableStaff.map(s => s._id)); // Select all non-admins
+    }
+  };
+
+  const handleSingleDeleteStaff = async (staffId, staffName) => {
+    const confirmMessage = `Are you sure you want to permanently delete ${staffName}? This action cannot be undone.`;
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      await axios.delete(`http://localhost:8070/employee/${staffId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert(`${staffName} has been successfully deleted.`);
+      fetchStaff();
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert(err.response?.data?.error || "Deletion failed.");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedStaffIds.length === 0) return;
+
+    const confirmMessage = `Are you sure you want to permanently delete ${selectedStaffIds.length} selected staff profiles? This action cannot be undone.`;
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      await axios.post("http://localhost:8070/employee/bulk-delete", {
+        ids: selectedStaffIds
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert(`Successfully deleted ${selectedStaffIds.length} profiles.`);
+      setSelectedStaffIds([]); // Clear selection
+      fetchStaff(); // Refresh list
+    } catch (err) {
+      console.error("Bulk delete error:", err);
+      alert(err.response?.data?.error || "Bulk deletion failed.");
+    }
+  };
+
+  // Logout function
+  const handleLogout = () => {
+    // Remove token from sessionstorage
+    sessionStorage.removeItem("token");
+    // Redirect to login page
+    navigate("/StaffLogin", { replace: true });
+  };
+
 
 
   // PDF generation states
@@ -283,486 +420,458 @@ function AdminDashboardContent() {
     doc.save(`Room_Summary_${pdfStartDate || 'All'}_${pdfEndDate || 'All'}.pdf`);
   };
 
-  const { theme } = useTheme();
-  // Theme background and doodle icon
-  let bgImage = null;
-  let doodle = null;
-  if (theme === THEMES.RAMADAN) {
-    bgImage = ramadanMoon;
-    doodle = <img src={ramadanLantern} alt="Ramadan" className="ramadan-icon" />;
-  } else if (theme === THEMES.CHRISTMAS) {
-    bgImage = christmasBg;
-    doodle = <img src={tree} alt="Christmas" className="christmas-icon" />;
-  } else if (theme === THEMES.NEWYEAR) {
-    bgImage = fireworks;
-    doodle = <img src={fireworkIcon} alt="New Year" className="newyear-icon" />;
-  }
+  const { theme, selectTheme } = useTheme();
+  const [themeMessage, setThemeMessage] = useState("");
 
+  // Show message when theme changes
+  useEffect(() => {
+    if (!theme) return;
+    let msg = "";
+    if (theme === THEMES.PONGAL) {
+      msg = "🌾 Thai Pongal\n\nThai Pongal seasonal theme has been successfully activated and the system is now running in this theme.";
+    } else if (theme === THEMES.RAMADAN) {
+      msg = "🌙 Ramadan\n\nRamadan seasonal theme has been successfully activated and the system is now running in this theme.";
+    } else if (theme === THEMES.NEWYEAR) {
+      msg = "🎆 New Year\n\nNew Year seasonal theme has been successfully activated and the system is now running in this theme.";
+    } else if (theme === THEMES.CHRISTMAS) {
+      msg = "🎄 Christmas\n\nChristmas seasonal theme has been successfully activated and the system is now running in this theme.";
+    } else {
+      msg = "";
+    }
+    setThemeMessage(msg);
+  }, [theme]);
+
+  // Theme dropdown button state
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const themeOptions = [
+    { value: THEMES.RAMADAN, label: "Ramadan" },
+    { value: THEMES.CHRISTMAS, label: "Christmas" },
+    { value: THEMES.NEWYEAR, label: "New Year" },
+    { value: THEMES.PONGAL, label: "Pongal" },
+    { value: THEMES.DEFAULT, label: "Default" },
+  ];
+  // Close dropdown on outside click
+  React.useEffect(() => {
+    if (!themeMenuOpen) return;
+    const handler = (e) => {
+      if (!e.target.closest(".theme-dropdown-container")) setThemeMenuOpen(false);
+    };
+    window.addEventListener("mousedown", handler);
+    return () => window.removeEventListener("mousedown", handler);
+  }, [themeMenuOpen]);
+  // Dropdown background and theme UI logic retained natively
   return (
-    <div
-      className={`admin-glass-bg theme-${theme}`}
-      style={bgImage ? { backgroundImage: `url(${bgImage})`, backgroundRepeat: 'no-repeat', backgroundPosition: 'top right' } : {}}
-    >
-      {/* Animated SVG Background Shapes */}
-      <svg className="admin-bg-svg" width="100%" height="100%" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="wave1" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#b7cbe6" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#e0e7ef" stopOpacity="0.2" />
-          </linearGradient>
-          <linearGradient id="wave2" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#4b79a1" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#1a237e" stopOpacity="0.10" />
-          </linearGradient>
-        </defs>
-        <path d="M0,700 Q360,800 720,700 T1440,700 V900 H0 Z" fill="url(#wave1)">
-          <animate attributeName="d" dur="8s" repeatCount="indefinite" values="M0,700 Q360,800 720,700 T1440,700 V900 H0 Z;M0,720 Q360,780 720,720 T1440,720 V900 H0 Z;M0,700 Q360,800 720,700 T1440,700 V900 H0 Z" />
-        </path>
-        <path d="M0,800 Q480,900 960,800 T1440,800 V900 H0 Z" fill="url(#wave2)">
-          <animate attributeName="d" dur="10s" repeatCount="indefinite" values="M0,800 Q480,900 960,800 T1440,800 V900 H0 Z;M0,820 Q480,880 960,820 T1440,820 V900 H0 Z;M0,800 Q480,900 960,800 T1440,800 V900 H0 Z" />
-        </path>
-      </svg>
-      {/* App Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem' }}>
-        <AppHeader appName="Bird Nest" tagline="Empowering Admins, Effortlessly" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <ThemeSwitcher />
-          {doodle}
+    <div className={`admin-dashboard-wrapper theme-${theme}`}>
+      {/* Professional Sidebar Navigation */}
+      <aside className="admin-sidebar shadow-lg">
+        <div className="admin-sidebar-logo">
+          <img src={logo} alt="Bird Nest" />
+          <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Bird Nest</h3>
+          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginTop: 4 }}>Control Panel</span>
         </div>
-      </div>
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", minHeight: "80vh", gap: "2rem", position: "relative", zIndex: 2 }}>
-        {/* Sidebar Navigation */}
-        <div style={{ minWidth: 220, maxWidth: 260, marginTop: "2.5rem" }}>
-          <div className="admin-glass-card" style={{ padding: "1.5rem 1rem", minWidth: 0, maxWidth: 260 }}>
-            <div style={{ textAlign: "center", marginBottom: 18 }}>
-              <img src={logo} alt="Bird Nest LOGO" style={{ width: 60, borderRadius: 12, marginBottom: 8, background: "#fff" }} />
-            </div>
-            <button className={`admin-glass-input${activeSection === "room" ? " active" : ""}`} style={{ marginBottom: 10, width: "100%", minWidth: 0, display: "block" }} onClick={() => handleSectionClick("room")}>Room Management</button>
-            <button className={`admin-glass-input${activeSection === "staff" ? " active" : ""}`} style={{ marginBottom: 10, width: "100%", minWidth: 0, display: "block" }} onClick={() => handleSectionClick("staff")}>Staff Management</button>
-            <button className={`admin-glass-input${activeSection === "admin" ? " active" : ""}`} style={{ marginBottom: 10, width: "100%", minWidth: 0, display: "block" }} onClick={() => handleSectionClick("admin")}>Staff Registration</button>
-            {sessionStorage.getItem("token") && (
-              <button className="admin-glass-input" style={{ background: "#e74c3c", color: "#fff", marginTop: 18, width: "100%", minWidth: 0, display: "block" }} onClick={handleLogout}><strong>Logout</strong></button>
+
+        <nav className="admin-nav">
+          <button
+            className={`admin-nav-item ${activeSection === "room" ? "active" : ""}`}
+            onClick={() => handleSectionClick("room")}
+          >
+            <span className="admin-nav-icon">📊</span>
+            <span>Listings Management</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeSection === "staff" ? "active" : ""}`}
+            onClick={() => handleSectionClick("staff")}
+          >
+            <span className="admin-nav-icon">👥</span>
+            <span>Staff Directory</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeSection === "admin" ? "active" : ""}`}
+            onClick={() => handleSectionClick("admin")}
+          >
+            <span className="admin-nav-icon">🛡️</span>
+            <span>Staff Registration</span>
+          </button>
+        </nav>
+
+        <div className="admin-sidebar-footer">
+          {/* Theme Selector Dropdown */}
+          <div className="theme-dropdown-container" style={{ position: 'relative', marginBottom: '1rem' }}>
+            <button
+              className={`admin-nav-item ${themeMenuOpen ? 'active' : ''}`}
+              onClick={() => setThemeMenuOpen(!themeMenuOpen)}
+            >
+              <span className="admin-nav-icon">🎨</span>
+              <span>Appearance</span>
+            </button>
+
+            {themeMenuOpen && (
+              <div className="theme-dropdown-menu shadow-lg" style={{
+                position: 'absolute',
+                bottom: '100%',
+                left: '10px',
+                width: '180px',
+                background: 'white',
+                borderRadius: '12px',
+                padding: '8px',
+                marginBottom: '10px',
+                zIndex: 1000,
+                border: '1px solid #eef2f6',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px'
+              }}>
+                {themeOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      selectTheme(opt.value);
+                      setThemeMenuOpen(false);
+                      // Trigger an immediate refresh for a clean UI state as requested
+                      window.location.reload();
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      border: 'none',
+                      background: theme === opt.value ? '#f0f4ff' : 'transparent',
+                      textAlign: 'left',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      color: theme === opt.value ? '#1a237e' : '#4b5568',
+                      fontWeight: theme === opt.value ? 700 : 500,
+                      fontSize: '0.88rem',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => { if (theme !== opt.value) e.currentTarget.style.background = '#f8fafc'; }}
+                    onMouseOut={(e) => { if (theme !== opt.value) e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    {theme === opt.value && <span style={{ marginRight: 8 }}>•</span>}
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
+
+          {sessionStorage.getItem("token") && (
+            <button
+              className="admin-nav-item"
+              style={{ color: '#ff4d4d' }}
+              onClick={handleLogout}
+            >
+              <span className="admin-nav-icon">🚪</span>
+              <span>Secure Logout</span>
+            </button>
+          )}
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="admin-main-content">
+        <div style={{ position: 'sticky', top: 0, zIndex: 1000 }}>
+          <AppHeader appName="Bird Nest" tagline="High-Performance Admin Portal" />
         </div>
         {/* Main Content */}
-        <div className="admin-glass-center" style={{ alignItems: "flex-start", width: "100%", marginTop: "2.5rem" }}>
-          <div className="admin-glass-card" style={{ width: "100%", maxWidth: 900, minWidth: 320, margin: 0 }}>
-            {message1 && <div className="alert alert-danger">{message1}</div>}
-            {/* Room Management Section */}
-            {activeSection === "room" && (
-              <section id="room-management" className="mb-4">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
-                  <h2 className="admin-glass-title" style={{ marginBottom: 0 }}>Room Management</h2>
+        {/* Summary Statistics Cards */}
+        <div className="admin-stats-grid">
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: '#e3f2fd', color: '#1976d2' }}>🏢</div>
+            <div className="stat-info">
+              <h4>Total Listings</h4>
+              <div>{summaryStats.totalRooms}</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: '#fff8e1', color: '#ffa000' }}>⏳</div>
+            <div className="stat-info">
+              <h4>Pending Approval</h4>
+              <div style={{ color: summaryStats.pendingVerifications > 0 ? '#d32f2f' : 'inherit' }}>
+                {summaryStats.pendingVerifications}
+              </div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: '#e8f5e9', color: '#388e3c' }}>✅</div>
+            <div className="stat-info">
+              <h4>Verified</h4>
+              <div>{summaryStats.verifiedListings}</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: '#fafafa', color: '#616161' }}>👥</div>
+            <div className="stat-info">
+              <h4>Staff Count</h4>
+              <div>{summaryStats.staffCount}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Content View Area */}
+        <div className="admin-content-view">
+          {message1 && <div className="alert alert-danger shadow-sm border-0" style={{ borderRadius: 12 }}>{message1}</div>}
+          {/* Room Management Section */}
+          {activeSection === "room" && (
+            <section id="room-management" className="mb-5">
+              <div className="admin-content-header">
+                <h2 className="admin-page-title">Listings Management</h2>
+                <div style={{ display: 'flex', gap: 12 }}>
                   <button
                     onClick={openPdfModal}
+                    className="btn shadow-sm"
                     style={{
+                      background: '#fff',
+                      color: '#1a237e',
+                      border: '1px solid #dbe2ef',
+                      borderRadius: 10,
+                      fontWeight: 600,
+                      padding: '8px 20px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 7,
-                      background: 'linear-gradient(90deg, #1976d2 60%, #2196f3 100%)',
-                      color: '#fff',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      padding: '7px 18px',
-                      border: 'none',
-                      borderRadius: 8,
-                      boxShadow: '0 2px 8px rgba(25, 118, 210, 0.10)',
-                      marginLeft: 12,
-                      marginTop: 2,
-                      minWidth: 0,
-                      cursor: 'pointer',
-                      transition: 'background 0.2s, box-shadow 0.2s',
-                    }}
-                    onMouseOver={e => {
-                      e.currentTarget.style.background = 'linear-gradient(90deg, #1565c0 60%, #1976d2 100%)';
-                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(25, 118, 210, 0.18)';
-                    }}
-                    onMouseOut={e => {
-                      e.currentTarget.style.background = 'linear-gradient(90deg, #1976d2 60%, #2196f3 100%)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(25, 118, 210, 0.10)';
+                      gap: 8
                     }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H6zm0 2h12v16H6V4zm6 2a1 1 0 0 1 1 1v5.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L11 12.586V7a1 1 0 0 1 1-1z"/></svg>
-                    PDF Summary
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H6zm0 2h12v16H6V4zm6 2a1 1 0 0 1 1 1v5.586l1.293-1.293a1 1 0 1 1 1.414 1.414l-3 3a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L11 12.586V7a1 1 0 0 1 1-1z" /></svg>
+                    Generate PDF Report
                   </button>
                 </div>
-                {unverifiedRooms.length > 0 && (
-                  <div className="alert alert-warning text-center" style={{ marginTop: 12 }}>
-                    ⚠️ There are {unverifiedRooms.length} unverified rooms waiting for approval.
-                  </div>
-                )}
+              </div>
 
-                {/* PDF Modal */}
-                {showPdfModal && (
+              {/* PDF Modal */}
+              {showPdfModal && (
+                <div style={{
+                  position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
+                  background: 'rgba(0,0,0,0.22)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
                   <div style={{
-                    position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
-                    background: 'rgba(0,0,0,0.22)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    background: '#fff',
+                    borderRadius: 18,
+                    padding: '38px 38px 28px 38px',
+                    minWidth: 340,
+                    maxWidth: 420,
+                    boxShadow: '0 8px 40px rgba(25, 118, 210, 0.18)',
+                    border: '1.5px solid #e3eafc',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
                   }}>
+                    <h3 style={{
+                      marginBottom: 22,
+                      fontWeight: 700,
+                      fontSize: 24,
+                      color: '#232946',
+                      letterSpacing: 0.2
+                    }}>Select Duration for PDF</h3>
                     <div style={{
-                      background: '#fff',
-                      borderRadius: 18,
-                      padding: '38px 38px 28px 38px',
-                      minWidth: 340,
-                      maxWidth: 420,
-                      boxShadow: '0 8px 40px rgba(25, 118, 210, 0.18)',
-                      border: '1.5px solid #e3eafc',
                       display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
+                      gap: 28,
+                      marginBottom: 18,
+                      width: '100%',
+                      justifyContent: 'center',
                     }}>
-                      <h3 style={{
-                        marginBottom: 22,
-                        fontWeight: 700,
-                        fontSize: 24,
-                        color: '#232946',
-                        letterSpacing: 0.2
-                      }}>Select Duration for PDF</h3>
-                      <div style={{
-                        display: 'flex',
-                        gap: 28,
-                        marginBottom: 18,
-                        width: '100%',
-                        justifyContent: 'center',
-                      }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                          <label style={{ fontWeight: 500, color: '#3b4252', marginBottom: 6 }}>Start Date</label>
-                          <input
-                            type="date"
-                            value={tempStartDate}
-                            onChange={e => setTempStartDate(e.target.value)}
-                            style={{
-                              padding: '7px 10px',
-                              borderRadius: 6,
-                              border: '1.5px solid #bfcbe6',
-                              fontSize: 15,
-                              minWidth: 120,
-                              outline: 'none',
-                              transition: 'border 0.2s',
-                            }}
-                          />
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                          <label style={{ fontWeight: 500, color: '#3b4252', marginBottom: 6 }}>End Date</label>
-                          <input
-                            type="date"
-                            value={tempEndDate}
-                            onChange={e => setTempEndDate(e.target.value)}
-                            style={{
-                              padding: '7px 10px',
-                              borderRadius: 6,
-                              border: '1.5px solid #bfcbe6',
-                              fontSize: 15,
-                              minWidth: 120,
-                              outline: 'none',
-                              transition: 'border 0.2s',
-                            }}
-                          />
-                        </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <label style={{ fontWeight: 500, color: '#3b4252', marginBottom: 6 }}>Start Date</label>
+                        <input
+                          type="date"
+                          value={tempStartDate}
+                          onChange={e => setTempStartDate(e.target.value)}
+                          style={{
+                            padding: '7px 10px',
+                            borderRadius: 6,
+                            border: '1.5px solid #bfcbe6',
+                            fontSize: 15,
+                            minWidth: 120,
+                            outline: 'none',
+                            transition: 'border 0.2s',
+                          }}
+                        />
                       </div>
-                      <div style={{ width: '100%', height: 1, background: '#e3eafc', margin: '10px 0 22px 0' }} />
-                      <div style={{ display: 'flex', gap: 22, justifyContent: 'center', width: '100%' }}>
-                        <button
-                          onClick={closePdfModal}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <label style={{ fontWeight: 500, color: '#3b4252', marginBottom: 6 }}>End Date</label>
+                        <input
+                          type="date"
+                          value={tempEndDate}
+                          onChange={e => setTempEndDate(e.target.value)}
                           style={{
-                            background: '#7b8794',
-                            color: '#fff',
-                            fontWeight: 600,
-                            fontSize: 17,
-                            border: 'none',
-                            borderRadius: 8,
-                            padding: '12px 38px',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s',
-                            boxShadow: '0 2px 8px rgba(123,135,148,0.10)'
+                            padding: '7px 10px',
+                            borderRadius: 6,
+                            border: '1.5px solid #bfcbe6',
+                            fontSize: 15,
+                            minWidth: 120,
+                            outline: 'none',
+                            transition: 'border 0.2s',
                           }}
-                          onMouseOver={e => e.currentTarget.style.background = '#616e7c'}
-                          onMouseOut={e => e.currentTarget.style.background = '#7b8794'}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={submitPdfModal}
-                          disabled={!tempStartDate && !tempEndDate}
-                          style={{
-                            background: (!tempStartDate && !tempEndDate) ? '#a7d7c5' : '#159a6f',
-                            color: '#fff',
-                            fontWeight: 700,
-                            fontSize: 17,
-                            border: 'none',
-                            borderRadius: 8,
-                            padding: '12px 38px',
-                            cursor: (!tempStartDate && !tempEndDate) ? 'not-allowed' : 'pointer',
-                            opacity: (!tempStartDate && !tempEndDate) ? 0.7 : 1,
-                            boxShadow: '0 2px 8px rgba(21,154,111,0.10)'
-                          }}
-                          onMouseOver={e => {
-                            if (!e.currentTarget.disabled) e.currentTarget.style.background = '#107457';
-                          }}
-                          onMouseOut={e => {
-                            if (!e.currentTarget.disabled) e.currentTarget.style.background = '#159a6f';
-                          }}
-                        >
-                          Generate
-                        </button>
+                        />
                       </div>
                     </div>
+                    <div style={{ width: '100%', height: 1, background: '#e3eafc', margin: '10px 0 22px 0' }} />
+                    <div style={{ display: 'flex', gap: 22, justifyContent: 'center', width: '100%' }}>
+                      <button
+                        onClick={closePdfModal}
+                        style={{
+                          background: '#7b8794',
+                          color: '#fff',
+                          fontWeight: 600,
+                          fontSize: 17,
+                          border: 'none',
+                          borderRadius: 8,
+                          padding: '12px 38px',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s',
+                          boxShadow: '0 2px 8px rgba(123,135,148,0.10)'
+                        }}
+                        onMouseOver={e => e.currentTarget.style.background = '#616e7c'}
+                        onMouseOut={e => e.currentTarget.style.background = '#7b8794'}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={submitPdfModal}
+                        disabled={!tempStartDate && !tempEndDate}
+                        style={{
+                          background: (!tempStartDate && !tempEndDate) ? '#a7d7c5' : '#159a6f',
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: 17,
+                          border: 'none',
+                          borderRadius: 8,
+                          padding: '12px 38px',
+                          cursor: (!tempStartDate && !tempEndDate) ? 'not-allowed' : 'pointer',
+                          opacity: (!tempStartDate && !tempEndDate) ? 0.7 : 1,
+                          boxShadow: '0 2px 8px rgba(21,154,111,0.10)'
+                        }}
+                        onMouseOver={e => {
+                          if (!e.currentTarget.disabled) e.currentTarget.style.background = '#107457';
+                        }}
+                        onMouseOut={e => {
+                          if (!e.currentTarget.disabled) e.currentTarget.style.background = '#159a6f';
+                        }}
+                      >
+                        Generate
+                      </button>
+                    </div>
                   </div>
-                )}
-                {/* Unverified Rooms */}
-                <h4 className="admin-glass-subtitle">Unverified Rooms</h4>
-                {error && <div className="text-danger" style={{textAlign: 'center', marginBottom: 10}}>{error}</div>}
-                {loading ? (
-                  <p>Loading rooms...</p>
-                ) : unverifiedRooms.length === 0 ? (
-                  <p>No unverified rooms available.</p>
-                ) : (
-                  <div className="admin-glass-card" style={{ background: 'rgba(255,255,255,0.35)', boxShadow: '0 8px 32px 0 rgba(31,38,135,0.18)', borderRadius: '22px', border: '1.5px solid rgba(255,255,255,0.35)', padding: '1.2rem 1.2rem 1rem 1.2rem', margin: '1.2rem 0', maxWidth: 700, marginLeft: 'auto', marginRight: 'auto', position: 'relative', zIndex: 2 }}>
-                    <table className="table table-striped" style={{ background: 'transparent', margin: 0 }}>
-                      <thead>
-                        <tr>
-                          <th>Room Type</th>
-                          <th>Address</th>
-                          <th>Price</th>
-                          <th>Submission Date</th>
-                          <th>Approval Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[...unverifiedRooms].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map((room) => (
-                          <React.Fragment key={room._id}>
-                            <tr onClick={() => handleRoomClick(room)} style={{ cursor: "pointer" }}>
-                              <td>{room.roomType} - {room.ownerName || "N/A"}</td>
-                              <td>{room.roomAddress}</td>
-                              <td>Rs {room.price.toLocaleString()}</td>
-                              <td>{room.createdAt ? new Date(room.createdAt).toLocaleString() : "-"}</td>
-                              <td>{room.verifiedAt ? new Date(room.verifiedAt).toLocaleString() : "-"}</td>
-                            </tr>
-                            {selectedRoom?._id === room._id && (
-                              <tr>
-                                <td colSpan="5">
-                                  <div className="accordion-body admin-glass-card" style={{ margin: '20px 0', background: 'rgba(255,255,255,0.45)', boxShadow: '0 8px 32px 0 rgba(31,38,135,0.18)', borderRadius: '22px', border: '1.5px solid rgba(255,255,255,0.35)', padding: '2rem 2rem 1.5rem 2rem', maxWidth: 700, marginLeft: 'auto', marginRight: 'auto' }}>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'flex-start' }}>
-                                      <div style={{ flex: '1 1 260px', minWidth: 220 }}>
+                </div>
+              )}
+              {/* Unverified Rooms Section */}
+              <h4 className="admin-glass-subtitle" style={{ textAlign: 'left', marginLeft: 0, marginBottom: '1.5rem', color: '#4b79a1' }}>
+                Pending Verifications
+              </h4>
+              {error && <div className="alert alert-danger" style={{ borderRadius: 10 }}>{error}</div>}
+
+              {loading ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border text-primary" role="status"></div>
+                  <p className="mt-2 text-muted">Fetching latest listings...</p>
+                </div>
+              ) : unverifiedRooms.length === 0 ? (
+                <div className="admin-table-container p-5 text-center text-muted">
+                  <span style={{ fontSize: '2rem' }}>🏘️</span>
+                  <p className="mt-2">All caught up! No unverified rooms at the moment.</p>
+                </div>
+              ) : (
+                <div className="admin-table-container mb-5">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Guest House</th>
+                        <th>Location</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {unverifiedRooms.map((room) => (
+                        <React.Fragment key={room._id}>
+                          <tr>
+                            <td style={{ fontWeight: 600 }}>{room.name || room.roomType}</td>
+                            <td>{room.roomCity || room.roomAddress}</td>
+                            <td><span style={{ fontWeight: 600 }}>Rs {room.price?.toLocaleString()}</span></td>
+                            <td>
+                              <span className="status-badge status-pending">
+                                <span className="pulse-dot"></span> Pending
+                              </span>
+                            </td>
+                            <td>
+                              <button
+                                className="btn btn-sm"
+                                style={{
+                                  border: '1.2px solid #1a237e',
+                                  color: '#1a237e',
+                                  borderRadius: 30,
+                                  fontWeight: 600,
+                                  padding: '4px 14px'
+                                }}
+                                onClick={() => handleRoomClick(room)}
+                              >
+                                {selectedRoom?._id === room._id ? 'Close' : 'Review'}
+                              </button>
+                            </td>
+                          </tr>
+                          {selectedRoom?._id === room._id && (
+                            <tr>
+                              <td colSpan="5" className="p-0">
+                                <div style={{ background: '#f8fafc', padding: '2rem', borderBottom: '1px solid #e2e8f0' }}>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2.5rem' }}>
+                                    {/* Left: Media */}
+                                    <div>
+                                      <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
                                         <img
                                           src={`http://localhost:8070${room.images[activeImageIndex]}`}
-                                          alt={`Room ${activeImageIndex + 1}`}
-                                          className="d-block w-100"
-                                          style={{
-                                            maxWidth: "320px",
-                                            maxHeight: "180px",
-                                            margin: "auto",
-                                            borderRadius: "14px",
-                                            boxShadow: "0 2px 12px rgba(31,38,135,0.10)",
-                                            objectFit: "cover"
-                                          }}
-                                        />
-                                        <div className="row mt-2 justify-content-center" style={{ gap: 6 }}>
-                                          {room.images.map((image, index) => (
-                                            <div key={index} className="col-1">
-                                              <img
-                                                src={`http://localhost:8070${image}`}
-                                                alt={`Thumbnail ${index + 1}`}
-                                                className={`img-thumbnail${activeImageIndex === index ? ' border-primary' : ''}`}
-                                                style={{ cursor: 'pointer', borderRadius: 6, border: activeImageIndex === index ? '2px solid #4b79a1' : '1px solid #ccc', width: 38, height: 38, objectFit: 'cover' }}
-                                                onClick={() => handleThumbnailClick(index)}
-                                              />
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                      <div style={{ flex: '2 1 320px', minWidth: 220 }}>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px 32px', marginBottom: 10 }}>
-                                          <div style={{ flex: '1 1 180px', minWidth: 140 }}>
-                                            <span role="img" aria-label="user">👤</span> <strong>Owner:</strong> {room.ownerName || "N/A"}
-                                          </div>
-                                          <div style={{ flex: '1 1 180px', minWidth: 140 }}>
-                                            <span role="img" aria-label="phone">📞</span> <strong>Contact:</strong> {room.ownerContactNumber || "N/A"}
-                                          </div>
-                                          <div style={{ flex: '1 1 180px', minWidth: 140 }}>
-                                            <span role="img" aria-label="calendar">📅</span> <strong>Listed:</strong> {new Date(room.createdAt).toLocaleString()}
-                                          </div>
-                                          <div style={{ flex: '1 1 180px', minWidth: 140 }}>
-                                            <span role="img" aria-label="location">📍</span> <strong>Address:</strong> {room.roomAddress || "N/A"}
-                                          </div>
-                                          <div style={{ flex: '1 1 180px', minWidth: 140 }}>
-                                            <span role="img" aria-label="city">🏙️</span> <strong>City:</strong> {room.roomCity || "N/A"}
-                                          </div>
-                                          <div style={{ flex: '1 1 180px', minWidth: 140 }}>
-                                            <span role="img" aria-label="price">💰</span> <strong>Price:</strong> Rs {room.price?.toLocaleString() || "N/A"}
-                                          </div>
-                                          <div style={{ flex: '1 1 180px', minWidth: 140 }}>
-                                            <span role="img" aria-label="negotiable">🤝</span> <strong>Negotiable:</strong> <span className={room.isNegotiable ? 'badge bg-success' : 'badge bg-secondary'} style={{ fontSize: 13 }}>{room.isNegotiable ? 'Yes' : 'No'}</span>
-                                          </div>
-                                        </div>
-                                        <hr style={{ margin: '10px 0 14px 0', borderTop: '1.5px solid #e0e7ef' }} />
-                                        <div style={{ marginBottom: 10 }}>
-                                          <strong>Description:</strong>
-                                          <div style={{ background: '#f7fafd', borderRadius: 8, padding: '8px 12px', marginTop: 4, fontSize: 15, color: '#232946' }}>{room.description || "N/A"}</div>
-                                        </div>
-                                        {room.features && room.features.length > 0 && (
-                                          <div style={{ marginBottom: 10 }}>
-                                            <strong>Features:</strong>
-                                            <ul style={{ margin: '6px 0 0 0', padding: 0, listStyle: 'none' }}>
-                                              {room.features.map((feature, idx) => (
-                                                <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15 }}>
-                                                  <span role="img" aria-label="check">✅</span> {feature}
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          </div>
-                                        )}
-                                        <div style={{ marginTop: 18, display: 'flex', gap: '10px' }}>
-                                          <button
-                                            onClick={() => handleVerification(room._id)}
-                                            className="approve-btn btn btn-success"
-                                            style={{ fontSize: 15, padding: '6px 14px', borderRadius: 8 }}
-                                          >
-                                            Approve
-                                          </button>
-                                          <button
-                                            onClick={() => handleRejection(room._id)}
-                                            className="reject-btn btn btn-danger"
-                                            style={{ fontSize: 15, padding: '6px 14px', borderRadius: 8 }}
-                                          >
-                                            Reject
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    {/* Rating History Section */}
-                                    <div className="mt-4">
-                                      <h5 style={{ fontWeight: 600, color: '#4b79a1' }}>
-                                        <span role="img" aria-label="star">⭐</span> Rating History
-                                      </h5>
-                                      {room.ratingHistory && room.ratingHistory.length > 0 ? (
-                                        room.ratingHistory.map((rating, index) => (
-                                          <div key={index} style={{ marginBottom: 10 }}>
-                                            <div>
-                                              <strong>Buyer:</strong> {rating.buyerName}
-                                              <div>
-                                                <strong>Rating:</strong>
-                                                {Array.from({ length: 5 }, (_, starIndex) => (
-                                                  <span
-                                                    key={starIndex}
-                                                    style={{
-                                                      fontSize: "20px",
-                                                      color: starIndex < rating.rating ? "#FFD700" : "#D3D3D3",
-                                                      cursor: "pointer",
-                                                    }}
-                                                  >
-                                                    ★
-                                                  </span>
-                                                ))}
-                                              </div>
-                                            </div>
-                                            <strong>Description:</strong> {rating.description}
-                                            <hr style={{ margin: "10px 0", borderTop: "1px solid #eee" }} />
-                                          </div>
-                                        ))
-                                      ) : (
-                                        <p style={{ color: '#888', fontStyle: 'italic' }}>No ratings yet.</p>
-                                      )}
-                                    </div>
-                                  </div>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </tbody>
-                    </table>
-                  </div>
-                )}
-                {/* Verified Rooms */}
-                <h4 className="admin-glass-subtitle">Verified Rooms</h4>
-                {loading ? (
-                  <p>Loading rooms...</p>
-                ) : verifiedRooms.length === 0 ? (
-                  <p>No verified rooms available.</p>
-                ) : (
-                  <div className="admin-glass-card" style={{ background: 'rgba(255,255,255,0.35)', boxShadow: '0 8px 32px 0 rgba(31,38,135,0.18)', borderRadius: '22px', border: '1.5px solid rgba(255,255,255,0.35)', padding: '1.2rem 1.2rem 1rem 1.2rem', margin: '1.2rem 0', maxWidth: 700, marginLeft: 'auto', marginRight: 'auto', position: 'relative', zIndex: 2 }}>
-                    <table className="table table-striped" style={{ background: 'transparent', margin: 0 }}>
-                      <thead>
-                        <tr>
-                          <th>Room Type</th>
-                          <th>Location</th>
-                          <th>Price</th>
-                          <th>Submission Date</th>
-                          <th>Approval Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[...verifiedRooms].sort((a, b) => {
-                          const aDate = a.verifiedAt ? new Date(a.verifiedAt) : new Date(a.createdAt);
-                          const bDate = b.verifiedAt ? new Date(b.verifiedAt) : new Date(b.createdAt);
-                          return bDate - aDate;
-                        }).map((room) => (
-                          <React.Fragment key={room._id}>
-                            <tr onClick={() => handleRoomClick(room)} style={{ cursor: "pointer" }}>
-                              <td>{room.roomType} - {room.ownerName || "N/A"}</td>
-                              <td>{room.roomCity}</td>
-                              <td>Rs {room.price.toLocaleString()}</td>
-                              <td>{room.createdAt ? new Date(room.createdAt).toLocaleString() : "-"}</td>
-                              <td>{room.verifiedAt ? new Date(room.verifiedAt).toLocaleString() : "-"}</td>
-                            </tr>
-                            {selectedRoom?._id === room._id && (
-                              <tr>
-                                <td colSpan="5">
-                                  <div className="accordion-body">
-                                  <img
-                                    src={`http://localhost:8070${room.images[activeImageIndex]}`}
-                                    alt={`Room ${activeImageIndex + 1}`}
-                                    className="d-block w-100"
-                                    style={{
-                                      maxWidth: "400px",
-                                      maxHeight: "200px",
-                                      margin: "auto",
-                                      borderRadius: "10px",
-                                      marginTop: "15px",
-                                    }}
-                                  />
-                                  <div className="row mt-3 justify-content-center">
-                                    {room.images.map((image, index) => (
-                                      <div key={index} className="col-1">
-                                        <img
-                                          src={`http://localhost:8070${image}`}
-                                          alt={`Thumbnail ${index + 1}`}
-                                          className="img-thumbnail"
-                                          onClick={() => handleThumbnailClick(index)}
+                                          alt="Room"
+                                          style={{ width: '100%', height: '240px', objectFit: 'cover' }}
                                         />
                                       </div>
-                                    ))}
+                                      <div style={{ display: 'flex', gap: 10, marginTop: 12, overflowX: 'auto', paddingBottom: 10 }}>
+                                        {room.images.map((img, idx) => (
+                                          <img
+                                            key={idx}
+                                            src={`http://localhost:8070${img}`}
+                                            alt="thumb"
+                                            onClick={() => handleThumbnailClick(idx)}
+                                            style={{
+                                              width: 50, height: 50, borderRadius: 8, objectFit: 'cover', cursor: 'pointer',
+                                              border: activeImageIndex === idx ? '2px solid #1a237e' : '1px solid #e2e8f0'
+                                            }}
+                                          />
+                                        ))}
+                                      </div>
+                                    </div>
+                                    {/* Right: Details */}
+                                    <div style={{ color: '#2d3748' }}>
+                                      <h5 style={{ fontWeight: 700, marginBottom: '1.5rem', color: '#1a237e' }}>Room Details</h5>
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem 2rem' }}>
+                                        <div><strong>Owner:</strong> {room.ownerName}</div>
+                                        <div><strong>Contact:</strong> {room.ownerContactNumber}</div>
+                                        <div><strong>Price:</strong> Rs {room.price?.toLocaleString()}</div>
+                                        <div><strong>Negotiable:</strong> {room.isNegotiable ? 'Yes' : 'No'}</div>
+                                        <div style={{ gridColumn: 'span 2' }}><strong>Address:</strong> {room.roomAddress}</div>
+                                      </div>
+                                      <div className="mt-4">
+                                        <strong>Description:</strong>
+                                        <p className="mt-1 text-muted" style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>{room.description}</p>
+                                      </div>
+                                      <div className="mt-4 d-flex gap-3">
+                                        <button
+                                          className="btn btn-success px-4"
+                                          style={{ borderRadius: 8, fontWeight: 600 }}
+                                          onClick={() => handleVerification(room._id)}
+                                        >
+                                          Verify & Publish
+                                        </button>
+                                        <button
+                                          className="btn btn-outline-danger px-4"
+                                          style={{ borderRadius: 8, fontWeight: 600 }}
+                                          onClick={() => handleRejection(room._id)}
+                                        >
+                                          Reject
+                                        </button>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <p>
-                                    <strong>Owner Name:</strong> {room.ownerName || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Owner Contact:</strong> {room.ownerContactNumber || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Listed On:</strong> {new Date(room.createdAt).toLocaleString()}
-                                  </p>
-                                  <p>
-                                    <strong>Room Address:</strong> {room.roomAddress || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Negotiable:</strong> {room.isNegotiable ? "Yes" : "No"}
-                                  </p>
-                                  <p>
-                                    <strong>Description:</strong> {room.description || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Submission Date:</strong> {room.createdAt ? new Date(room.createdAt).toLocaleString() : "-"}
-                                  </p>
-                                  <p>
-                                    <strong>Approval Date:</strong> {room.verifiedAt ? new Date(room.verifiedAt).toLocaleString() : "-"}
-                                  </p>
-                                  {room.rejected ? (
-                                    <span className="badge bg-danger" style={{ fontSize: 15, padding: '6px 14px', borderRadius: 8 }}>Rejected ❌</span>
-                                  ) : (
-                                    <span className="badge bg-success" style={{ fontSize: 15, padding: '6px 14px', borderRadius: 8 }}>Approved ✅</span>
-                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -770,140 +879,350 @@ function AdminDashboardContent() {
                         </React.Fragment>
                       ))}
                     </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
-            )}
-            {/* Staff Management Section */}
-            {activeSection === "staff" && (
-              <section id="staff-management" className="mb-4">
-                <h2 className="admin-glass-title">Staff Management</h2>
-                <p>Placeholder for Staff Management functionality.</p>
-                <table className="table table-striped">
+                  </table>
+                </div>
+              )}
+
+
+              {/* Verified Rooms Section */}
+              <h4 className="admin-glass-subtitle" style={{ textAlign: 'left', marginLeft: 0, marginBottom: '1.5rem', color: '#4b79a1', marginTop: '3rem' }}>
+                Verified Listings
+              </h4>
+
+              {verifiedRooms.length === 0 ? (
+                <p className="text-muted">No verified rooms found.</p>
+              ) : (
+                <div className="admin-table-container">
+                  <table className="admin-table text-nowrap">
+                    <thead>
+                      <tr>
+                        <th>Guest House</th>
+                        <th>Approval Date</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {verifiedRooms.map((room) => (
+                        <React.Fragment key={room._id}>
+                          <tr style={{ cursor: 'pointer' }} onClick={() => handleRoomClick(room)}>
+                            <td style={{ fontWeight: 600 }}>{room.name || room.roomType}</td>
+                            <td style={{ color: '#64748b' }}>{room.verifiedAt ? new Date(room.verifiedAt).toLocaleDateString() : '-'}</td>
+                            <td>Rs {room.price?.toLocaleString()}</td>
+                            <td>
+                              {room.rejected ? (
+                                <span className="status-badge status-rejected">Rejected</span>
+                              ) : (
+                                <span className="status-badge status-verified">Verified</span>
+                              )}
+                            </td>
+                            <td><button className="btn btn-sm btn-link text-primary p-0">View</button></td>
+                          </tr>
+                          {selectedRoom?._id === room._id && (
+                            <tr>
+                              <td colSpan="5" className="p-0">
+                                <div style={{ background: '#f8fafc', padding: '1.5rem' }}>
+                                  <p className="mb-0 text-muted" style={{ fontSize: '0.85rem' }}>Full record for <strong>{room.ownerName}</strong>'s property is stored securely.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
+          {/* Staff Management Section */}
+          {activeSection === "staff" && (
+            <section id="staff-management" className="mb-5">
+              <div className="admin-content-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <h2 className="admin-page-title" style={{ margin: 0 }}>Staff Directory</h2>
+                <button
+                  className="btn btn-link p-0 border-0"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s',
+                    width: '40px',
+                    height: '40px',
+                    color: selectedStaffIds.length > 0 ? '#dc3545' : '#ccc',
+                    cursor: selectedStaffIds.length > 0 ? 'pointer' : 'not-allowed',
+                    opacity: selectedStaffIds.length > 0 ? 1 : 0.4
+                  }}
+                  disabled={selectedStaffIds.length === 0}
+                  onClick={handleBulkDelete}
+                  title={selectedStaffIds.length > 0 ? `Delete ${selectedStaffIds.length} selected profiles` : "Select deactivated staff to delete"}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <div className="admin-table-container">
+                <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Staff Name</th>
-                      <th>Role</th>
-                      <th>Contact</th>
+                      <th style={{ width: '40px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedStaffIds.length > 0 && selectedStaffIds.length === allStaff.filter(s => s.role !== 'Admin').length}
+                          onChange={handleSelectAllStaff}
+                          style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
+                        />
+                      </th>
+                      <th>Name</th>
+                      <th>Position</th>
+                      <th>Email</th>
+                      <th style={{ textAlign: 'center' }}>Status</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>John Doe</td>
-                      <td>Administrator</td>
-                      <td>john@example.com</td>
-                    </tr>
+                    {allStaff.length > 0 ? allStaff.map((staff) => (
+                      <tr key={staff._id}>
+                        <td>
+                          {staff.role !== 'Admin' && (
+                            <input
+                              type="checkbox"
+                              checked={selectedStaffIds.includes(staff._id)}
+                              disabled={staff.isActive !== false}
+                              onChange={() => handleSelectStaff(staff._id, staff.role)}
+                              style={{
+                                cursor: staff.isActive !== false ? 'not-allowed' : 'pointer',
+                                transform: 'scale(1.2)',
+                                opacity: staff.isActive !== false ? 0.3 : 1
+                              }}
+                              title={staff.isActive !== false ? "Please deactivate this account before deleting" : "Select for deletion"}
+                            />
+                          )}
+                        </td>
+                        <td style={{ fontWeight: 600 }}>{staff.name} {staff.lname}</td>
+                        <td><span className="text-muted">{staff.role?.replace(/_/g, ' ')}</span></td>
+                        <td>{staff.email}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          {staff.isActive !== false ? (
+                            <span className="status-badge status-verified">Active</span>
+                          ) : (
+                            <span className="status-badge status-rejected">Deactivated</span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'right', background: 'transparent' }}>
+                          <div className="d-flex justify-content-end align-items-center gap-2" style={{ background: 'transparent' }}>
+                            {staff.role === 'Admin' && staff.isActive !== false ? (
+                              <span style={{ 
+                                color: '#1a237e', 
+                                fontWeight: 600, 
+                                fontSize: '0.85rem', 
+                                opacity: 0.8,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px'
+                              }}>
+                                🛡️ Protected
+                              </span>
+                            ) : (
+                              <button
+                                className="btn btn-sm"
+                                style={{ 
+                                  borderRadius: 30, 
+                                  fontWeight: 600, 
+                                  minWidth: '100px',
+                                  padding: '6px 16px',
+                                  fontSize: '0.8rem',
+                                  letterSpacing: '0.3px',
+                                  transition: 'all 0.25s ease',
+                                  border: staff.isActive !== false ? '1.5px solid #ffcdd2' : '1.5px solid #c8e6c9',
+                                  backgroundColor: 'transparent',
+                                  color: staff.isActive !== false ? '#d32f2f' : '#2e7d32',
+                                  boxShadow: 'none'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = staff.isActive !== false ? '#fff1f1' : '#f1f8f1';
+                                  e.currentTarget.style.transform = 'translateY(-1px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = staff.isActive !== false ? '#fffcfc' : '#fcfdfc';
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                }}
+                                onClick={() => handleToggleStaffStatus(staff._id, staff.isActive !== false)}
+                              >
+                                {staff.isActive !== false ? 'Deactivate' : 'Activate'}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan="6" className="text-center py-5 text-muted">
+                          <span style={{ fontSize: '2rem' }}>👥</span>
+                          <p className="mt-2">No staff members found in the directory.</p>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
-              </section>
-            )}
-            {/* Admin Registration Section */}
-            {activeSection === "admin" && (
-              <section id="admin-registration" className="mb-4">
-                <h2 className="admin-glass-title">Staff Registration</h2>
+              </div>
+            </section>
+          )}
+          {/* Admin Personnel Registration Section */}
+          {activeSection === "admin" && (
+            <section id="admin-personnel" className="mb-5">
+              <div className="admin-content-header">
+                <h2 className="admin-page-title">Staff Registration</h2>
+              </div>
+
+              <div className="admin-table-container p-5" style={{ 
+                maxWidth: 800, 
+                boxShadow: '0 10px 40px rgba(0,0,0,0.04)', 
+                borderRadius: 24,
+                border: '1px solid rgba(226, 232, 240, 0.8)'
+              }}>
                 {registrationMessage && (
-                  <div
-                    className={`alert ${
-                      registrationMessage.includes("successful")
-                        ? "alert-success"
-                        : "alert-danger"
-                    }`}
-                  >
+                  <div className={`alert ${registrationMessage.includes("successful") ? "alert-success" : "alert-danger"}`} 
+                    style={{ 
+                      borderRadius: 12, 
+                      marginBottom: 30, 
+                      border: 'none',
+                      padding: '15px 20px',
+                      fontWeight: 500,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+                    }}>
                     {registrationMessage}
                   </div>
                 )}
-                <form className="admin-glass-form" onSubmit={handleAdminRegistration} autoComplete="off" style={{ maxWidth: 520, margin: "0 auto" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }}>
-                    <div className="admin-glass-form-group">
-                      <label htmlFor="firstname">First Name <span style={{ color: '#c62828' }}>*</span></label>
-                      <input
-                        type="text"
-                        className="admin-glass-input"
-                        id="firstname"
-                        placeholder="First name"
-                        onChange={(e) => setName(e.target.value)}
-                        value={name}
-                        required
-                      />
-                    </div>
-                    <div className="admin-glass-form-group">
-                      <label htmlFor="lastname">Last Name (Optional)</label>
-                      <input
-                        type="text"
-                        className="admin-glass-input"
-                        id="lastname"
-                        placeholder="Last name"
-                        onChange={(e) => setLName(e.target.value)}
-                        value={lname}
-                      />
-                    </div>
+
+                <form onSubmit={handleStaffRegistration} autoComplete="off">
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+                    {[
+                      { label: "First Name", value: name, setter: setName, placeholder: "First name", required: true, type: "text" },
+                      { label: "Last Name", value: lname, setter: setLName, placeholder: "Last name", required: false, type: "text" },
+                      { label: "Phone Number", value: phoneNumber, setter: setPhoneNumber, placeholder: "Ex: 0712345678", required: true, type: "tel" },
+                      { label: "Email Address", value: email, setter: setEmail, placeholder: "staff@birdnest.com", required: true, type: "email" },
+                      { label: "Assigned Role", value: role, setter: setRole, placeholder: "Select Role", required: true, type: "select" },
+                      { label: "Password", value: password, setter: setPassword, placeholder: "Temporary password", required: true, type: "password" },
+                      { label: "Confirm Password", value: confirmPassword, setter: setConfirmPassword, placeholder: "Repeat password", required: true, type: "password" },
+                    ].map((field, idx) => (
+                      <div key={idx} className="admin-glass-form-group" style={{ 
+                        gridColumn: field.label === "Confirm Password" && idx % 2 === 0 ? "span 2" : "span 1" 
+                      }}>
+                        <label style={{ 
+                          fontWeight: 700, 
+                          color: '#64748b', 
+                          fontSize: '0.75rem', 
+                          textTransform: 'uppercase', 
+                          letterSpacing: '0.05em',
+                          marginBottom: '8px',
+                          display: 'block'
+                        }}>
+                          {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
+                        </label>
+                        
+                        {field.type === "select" ? (
+                          <select 
+                            className="admin-glass-input w-100" 
+                            value={field.value} 
+                            onChange={(e) => field.setter(e.target.value)}
+                            required={field.required}
+                            style={{ 
+                              backgroundColor: '#f8fafc', 
+                              border: '1.5px solid #e2e8f0',
+                              borderRadius: '12px',
+                              padding: '12px 16px',
+                              fontSize: '0.95rem',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <option value="">{field.placeholder}</option>
+                            <option value="Staff">Regular Staff</option>
+                            <option value="Customer_Care">Customer Care</option>
+                            <option value="Service_Agent">Service Agent</option>
+                          </select>
+                        ) : (
+                          <input 
+                            type={field.type} 
+                            className="admin-glass-input w-100" 
+                            value={field.value} 
+                            onChange={(e) => field.setter(e.target.value)} 
+                            required={field.required} 
+                            placeholder={field.placeholder}
+                            style={{ 
+                              backgroundColor: '#f8fafc', 
+                              border: '1.5px solid #e2e8f0',
+                              borderRadius: '12px',
+                              padding: '12px 16px',
+                              fontSize: '0.95rem',
+                              transition: 'all 0.3s ease'
+                            }}
+                            onFocus={(e) => {
+                              e.target.style.borderColor = '#1a237e';
+                              e.target.style.backgroundColor = '#fff';
+                              e.target.style.boxShadow = '0 0 0 4px rgba(26, 35, 126, 0.05)';
+                            }}
+                            onBlur={(e) => {
+                              e.target.style.borderColor = '#e2e8f0';
+                              e.target.style.backgroundColor = '#f8fafc';
+                              e.target.style.boxShadow = 'none';
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }}>
-                    <div className="admin-glass-form-group">
-                      <label htmlFor="phonenumber">Phone Number <span style={{ color: '#c62828' }}>*</span></label>
-                      <input
-                        type="tel"
-                        className="admin-glass-input"
-                        id="phonenumber"
-                        placeholder="Phone number"
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        value={phoneNumber}
-                        required
-                      />
-                    </div>
-                    <div className="admin-glass-form-group">
-                      <label htmlFor="useremail">Email <span style={{ color: '#c62828' }}>*</span></label>
-                      <input
-                        type="email"
-                        className="admin-glass-input"
-                        id="useremail"
-                        placeholder="Email"
-                        onChange={(e) => setEmail(e.target.value)}
-                        value={email}
-                        required
-                      />
-                    </div>
+                  
+                  <div style={{ marginTop: '3rem' }}>
+                    <button 
+                      type="submit" 
+                      className="btn w-100 py-3" 
+                      style={{ 
+                        borderRadius: 30, 
+                        fontWeight: 700, 
+                        backgroundColor: '#1a237e', 
+                        color: '#fff',
+                        fontSize: '1rem',
+                        letterSpacing: '0.02em',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 8px 20px rgba(26, 35, 126, 0.15)',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#283593';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 12px 28px rgba(26, 35, 126, 0.25)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#1a237e';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(26, 35, 126, 0.15)';
+                      }}
+                    >
+                      Complete Registration
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                      </svg>
+                    </button>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem" }}>
-                    <div className="admin-glass-form-group">
-                      <label htmlFor="userpassword">Password <span style={{ color: '#c62828' }}>*</span></label>
-                      <input
-                        type="password"
-                        className="admin-glass-input"
-                        id="userpassword"
-                        placeholder="Password"
-                        onChange={(e) => setPassword(e.target.value)}
-                        value={password}
-                        required
-                      />
-                    </div>
-                    <div className="admin-glass-form-group">
-                      <label htmlFor="confirmPassword">Confirm Password <span style={{ color: '#c62828' }}>*</span></label>
-                      <input
-                        type="password"
-                        className="admin-glass-input"
-                        id="confirmPassword"
-                        placeholder="Confirm Password"
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        value={confirmPassword}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <button type="submit" className="admin-glass-input" style={{ background: "#4b79a1", color: "#fff", fontWeight: 600, fontSize: "1.1rem", marginTop: 10 }}>
-                    Register
-                  </button>
                 </form>
-              </section>
-            )}
-          </div>
+              </div>
+            </section>
+          )}
         </div>
-      </div>
-      {/* Copyright Footer */}
-      <footer style={{ width: "100%", textAlign: "center", marginTop: "2rem", color: "#4b79a1", fontSize: "0.98rem", opacity: 0.85, zIndex: 2, position: "relative" }}>
-        © {new Date().getFullYear()} Bird Nest. All rights reserved.
-      </footer>
+      </main>
     </div>
   );
 }
