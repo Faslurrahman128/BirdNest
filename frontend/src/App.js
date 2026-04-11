@@ -1,6 +1,5 @@
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-
 import UpdateCustomer from "./pages/UpdateCustomer.js";
 import Dashborad from "./pages/dashboard.js";
 import Homepage from "./pages/Homepage.js";
