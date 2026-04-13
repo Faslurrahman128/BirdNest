@@ -9,18 +9,51 @@ import "../Componets/CSS/Admindash.css";
 import logo from "../Componets/assets/APPLOGO.png";
 
 function StaffDashboard() {
-  const { theme } = useTheme();
+  const { theme, selectTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const staffName = location.state?.message?.replace('Welcome, ', '').replace('!', '') || "Staff Member";
-  
+  const staffName = sessionStorage.getItem("staffName") || location.state?.message?.replace('Welcome, ', '').replace('!', '') || "Staff Member";
+  const staffEmail = sessionStorage.getItem("staffEmail") || "staff@birdnest.com";
+
   const [unverifiedRooms, setUnverifiedRooms] = useState([]);
   const [verifiedRooms, setVerifiedRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showPwdModal, setShowPwdModal] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("staffDarkMode") === "true");
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwdMsg, setPwdMsg] = useState({ text: "", type: "" });
   const token = sessionStorage.getItem("token");
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setPwdMsg({ text: "Passwords do not match.", type: "danger" });
+      return;
+    }
+    try {
+      await axios.put("http://localhost:8070/employee/change-password", {
+        email: staffEmail,
+        oldPassword,
+        newPassword
+      });
+      setPwdMsg({ text: "Password changed successfully!", type: "success" });
+      setTimeout(() => {
+        setShowPwdModal(false);
+        setPwdMsg({ text: "", type: "" });
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }, 2000);
+    } catch (err) {
+      setPwdMsg({ text: err.response?.data?.error || "Failed to change password.", type: "danger" });
+    }
+  };
 
   // Fetch rooms logic (synchronized with Admin logic)
   const fetchRooms = async () => {
@@ -74,7 +107,7 @@ function StaffDashboard() {
   const handleApprove = async (id) => {
     try {
       setLoading(true);
-      await axios.put(`http://localhost:8070/Room/verify/${id}`, 
+      await axios.put(`http://localhost:8070/Room/verify/${id}`,
         { isVerified: true, rejected: false },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -92,7 +125,7 @@ function StaffDashboard() {
   const handleReject = async (id) => {
     try {
       setLoading(true);
-      await axios.put(`http://localhost:8070/Room/verify/${id}`, 
+      await axios.put(`http://localhost:8070/Room/verify/${id}`,
         { isVerified: false, rejected: true },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -112,7 +145,7 @@ function StaffDashboard() {
   };
 
   return (
-    <div className={`admin-dashboard-wrapper theme-${theme}`}>
+    <div className={`admin-dashboard-wrapper theme-${theme} ${isDarkMode ? 'theme-dark' : ''}`}>
       {/* Staff Sidebar Section */}
       <aside className="admin-sidebar shadow-lg">
         <div className="admin-sidebar-logo">
@@ -126,17 +159,74 @@ function StaffDashboard() {
             <span className="admin-nav-icon">📊</span>
             <span>Listings Management</span>
           </button>
-        </nav>
 
-        <div className="admin-sidebar-footer">
+          {/* Email Access Button */}
           <button
             className="admin-nav-item"
-            style={{ color: '#ff4d4d' }}
-            onClick={handleLogout}
+            onClick={() => window.open('https://mail.google.com/', '_blank')}
           >
-            <span className="admin-nav-icon">🚪</span>
-            <span>Secure Logout</span>
+            <span className="admin-nav-icon">✉️</span>
+            <span>Check Email</span>
           </button>
+        </nav>
+
+        <div className="admin-sidebar-footer" style={{ padding: '0 10px 20px' }}>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
+            <button
+              className="admin-nav-item"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              style={{ justifyContent: 'space-between', paddingRight: '15px' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span className="admin-nav-icon">👤</span>
+                <span>My Profile</span>
+              </div>
+              <span style={{ fontSize: '0.8rem', transform: showProfileMenu ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}>▼</span>
+            </button>
+
+            {/* Expandable Profile Menu */}
+            {showProfileMenu && (
+              <div style={{ background: 'rgba(0,0,0,0.15)', borderRadius: '12px', padding: '10px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', padding: '4px 8px', wordBreak: 'break-all' }}>
+                  {staffEmail}
+                </div>
+
+                <button
+                  className="btn btn-sm"
+                  style={{ color: 'white', textAlign: 'left', padding: '8px', background: 'transparent', border: 'none', transition: '0.2s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  onClick={() => setShowPwdModal(true)}
+                >
+                  🔒 Reset Password
+                </button>
+
+                <button
+                  className="btn btn-sm"
+                  style={{ color: '#ff4d4d', textAlign: 'left', padding: '8px', background: 'transparent', border: 'none', transition: '0.2s', fontWeight: 600 }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,77,77,0.1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  onClick={handleLogout}
+                >
+                  🚪 Secure Logout
+                </button>
+              </div>
+            )}
+
+            {/* Dark Mode Toggle remains outside the expandable menu for quick access */}
+            <button
+              className="admin-nav-item"
+              style={{ marginTop: '10px' }}
+              onClick={() => {
+                const newMode = !isDarkMode;
+                setIsDarkMode(newMode);
+                localStorage.setItem("staffDarkMode", newMode);
+              }}
+            >
+              <span className="admin-nav-icon">{isDarkMode ? '☀️' : '🌙'}</span>
+              <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -194,11 +284,11 @@ function StaffDashboard() {
                   {unverifiedRooms.length > 0 ? unverifiedRooms.map((room) => (
                     <tr key={room._id}>
                       <td>
-                        <img 
+                        <img
                           src={room.images?.[0]?.startsWith('http') ? room.images[0] : `http://localhost:8070${room.images?.[0]?.startsWith('/') ? room.images[0] : '/uploads/' + room.images?.[0]}`}
-                          alt="room" 
+                          alt="room"
                           style={{ width: 60, height: 45, borderRadius: 8, objectFit: 'cover' }}
-                          onError={e => { e.target.onerror=null; e.target.src='https://via.placeholder.com/60x45?text=No+Img'; }}
+                          onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/60x45?text=No+Img'; }}
                         />
                       </td>
                       <td>
@@ -209,15 +299,15 @@ function StaffDashboard() {
                       <td>{room.roomCity}</td>
                       <td style={{ textAlign: 'right' }}>
                         <div className="d-flex justify-content-end gap-2">
-                          <button 
-                            className="btn btn-sm btn-success" 
+                          <button
+                            className="btn btn-sm btn-success"
                             style={{ borderRadius: 20, padding: '5px 15px', fontWeight: 600 }}
                             onClick={() => handleApprove(room._id)}
                           >
                             Approve
                           </button>
-                          <button 
-                            className="btn btn-sm btn-danger" 
+                          <button
+                            className="btn btn-sm btn-danger"
                             style={{ borderRadius: 20, padding: '5px 15px', fontWeight: 600 }}
                             onClick={() => handleReject(room._id)}
                           >
@@ -272,6 +362,67 @@ function StaffDashboard() {
           </section>
         </div>
       </main>
+
+      {/* Password Reset Modal */}
+      {showPwdModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
+          <div style={{ background: isDarkMode ? '#1e293b' : 'white', padding: '30px', borderRadius: '16px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ color: isDarkMode ? 'white' : '#1a237e', marginBottom: '20px', fontWeight: 700 }}>Reset Password</h3>
+
+            {pwdMsg.text && (
+              <div className={`alert alert-${pwdMsg.type}`} style={{ padding: '10px', fontSize: '0.9rem', borderRadius: '8px' }}>
+                {pwdMsg.text}
+              </div>
+            )}
+
+            <form onSubmit={handlePasswordChange}>
+              <div className="mb-3">
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: isDarkMode ? '#cbd5e1' : '#64748b' }}>Current Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  required
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  style={{ background: isDarkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`, color: isDarkMode ? 'white' : 'black' }}
+                />
+              </div>
+              <div className="mb-3">
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: isDarkMode ? '#cbd5e1' : '#64748b' }}>New Password (min 8 chars)</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  required
+                  minLength={8}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={{ background: isDarkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`, color: isDarkMode ? 'white' : 'black' }}
+                />
+              </div>
+              <div className="mb-4">
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: isDarkMode ? '#cbd5e1' : '#64748b' }}>Confirm New Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  style={{ background: isDarkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${isDarkMode ? '#334155' : '#e2e8f0'}`, color: isDarkMode ? 'white' : 'black' }}
+                />
+              </div>
+
+              <div className="d-flex justify-content-end gap-2">
+                <button type="button" className="btn btn-light" onClick={() => setShowPwdModal(false)} style={{ background: isDarkMode ? '#334155' : '#f1f5f9', color: isDarkMode ? 'white' : 'black', border: 'none' }}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ background: '#1a237e', border: 'none' }}>
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

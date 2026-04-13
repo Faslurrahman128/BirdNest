@@ -17,7 +17,7 @@ const EmployeeSchema = new Schema({
 
     role: {
         type: String,
-        enum: ['Admin', 'Staff', 'Customer_Care'],
+        enum: ['Admin', 'Staff', 'Customer_Care', 'Service_Agent'],
         required: true,
     },
 

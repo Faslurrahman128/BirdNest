@@ -331,7 +331,7 @@ function HomePage() {
                   currentRooms.map((room) => (
                     <div className="room-card" key={room._id}>
                       <img
-                        src={`http://localhost:8070${room.images[0]}`}
+                        src={room.images?.[0]?.startsWith('http') ? room.images[0] : `http://localhost:8070${room.images?.[0]?.startsWith('/') ? room.images[0] : '/uploads/' + room.images?.[0]}`}
                         alt="Room"
                         className="room-image"
                         onClick={() => handleBooking(room)}

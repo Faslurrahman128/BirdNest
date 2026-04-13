@@ -9,6 +9,8 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 require("dotenv").config(); // Load environment variables from .env file
 const fs = require("fs");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("./config/cloudinary");
 
 
 const app = express();
@@ -53,37 +55,24 @@ const Admin = require("./models/Admin");
 const Ticket = require("./models/Ticket");
 const serviceProvider = require("./models/serviceProvider");
 
-// Multer setup for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "uploads");
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+// Multer setup for Cloudinary image uploads
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "BirdNest_Properties",
+    allowed_formats: ["jpg", "png", "jpeg"],
+    public_id: (req, file) => `${Date.now()}-${file.originalname.split('.')[0]}`,
   },
 });
-
-// Serve static files (images) from the 'uploads' folder
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const upload = multer({
   storage,
-  fileFilter: (req, file, cb) => {
-    const fileTypes = /jpeg|jpg|png/;
-    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimeType = fileTypes.test(file.mimetype);
-    if (extname && mimeType) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only images (jpeg, jpg, png) are allowed"));
-    }
-  },
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
+
+// Serve static files (images) from the 'uploads' folder (for legacy images)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 // Email sending function
 app.post("/send-email", async (req, res) => {
@@ -207,15 +196,38 @@ app.post("/login", async (req, res) => {
 app.post("/admin/login", async (req, res) => {
   const { email, password } = req.body;
   try {
-    // Only allow login for accounts in the Admin collection
-    const admin = await Admin.findOne({ email });
-    if (!admin) return res.status(404).json({ error: "Admin not found" });
+    // 1. Check Admin collection first
+    let admin = await Admin.findOne({ email });
+    let source = "Admin";
+    
+    // 2. If not found, check Employee collection (but only if they have the Admin role)
+    if (!admin) {
+      const Employee = require("./models/Employee"); // Import locally to avoid circular dependency
+      admin = await Employee.findOne({ email, role: "Admin" });
+      source = "Employee";
+    }
+
+    if (!admin) return res.status(404).json({ error: "Admin account not found" });
+
+    // Check if account is deactivated
+    if (admin.isActive === false) {
+      return res.status(403).json({ error: "This administrator account has been deactivated." });
+    }
 
     const isPasswordValid = await bcrypt.compare(password, admin.password);
     if (!isPasswordValid) return res.status(403).json({ error: "Invalid credentials" });
 
-    const token = jwt.sign({ id: admin._id, role: "admin" }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.json({ token, username: admin.name });
+    const token = jwt.sign(
+      { id: admin._id, role: "admin", source: source }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: "1h" }
+    );
+    
+    res.json({ 
+      token, 
+      username: admin.name,
+      role: "Admin"
+    });
   } catch (err) {
     console.error("Error during admin login:", err.message);
     res.status(500).json({ error: err.message });

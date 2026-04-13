@@ -148,7 +148,7 @@ function BookForm() {
           <div className="card p-2 shadow flex-grow-2">
             <div className="image-carousel d-flex justify-content-center mb-3">
               <img
-                src={`http://localhost:8070${room.images[0]}`}
+                src={room.images?.[0]?.startsWith('http') ? room.images[0] : `http://localhost:8070${room.images?.[0]?.startsWith('/') ? room.images[0] : '/uploads/' + room.images?.[0]}`}
                 alt="Room"
                 className="card-img-top"
                 style={{ height: "200px", width: "100%", objectFit: "cover", borderRadius: "10px" }}

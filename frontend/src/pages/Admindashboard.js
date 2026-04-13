@@ -40,6 +40,7 @@ function AdminDashboardContent() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const navigate = useNavigate(); // Initialize useNavigate
+  const [isAdminDarkMode, setIsAdminDarkMode] = useState(() => localStorage.getItem("adminDarkMode") === "true");
 
   // Admin Registration States
   const [name, setName] = useState("");
@@ -295,15 +296,15 @@ function AdminDashboardContent() {
   };
 
   // Selection handlers for bulk delete
-  const handleSelectStaff = (id, role) => {
-    if (role === 'Admin') return; // Cannot select admins
+  const handleSelectStaff = (id, email) => {
+    if (email === 'faslurrahman128@gmail.com') return; // Cannot select primary admin
     setSelectedStaffIds(prev =>
       prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
     );
   };
 
   const handleSelectAllStaff = () => {
-    const deletableStaff = allStaff.filter(s => s.role !== 'Admin');
+    const deletableStaff = allStaff.filter(s => s.email !== 'faslurrahman128@gmail.com');
     if (selectedStaffIds.length === deletableStaff.length) {
       setSelectedStaffIds([]); // Deselect all
     } else {
@@ -504,9 +505,132 @@ function AdminDashboardContent() {
     window.addEventListener("mousedown", handler);
     return () => window.removeEventListener("mousedown", handler);
   }, [themeMenuOpen]);
+
+  // Helper to ensure robust image URL generation (consistent with StaffDashboard)
+  const getImageUrl = (imgPath) => {
+    if (!imgPath) return 'https://via.placeholder.com/400x300?text=No+Image';
+    if (imgPath.startsWith('http')) return imgPath;
+    const base = 'http://localhost:8070';
+    const path = imgPath.startsWith('/') ? imgPath : `/uploads/${imgPath}`;
+    return `${base}${path}`;
+  };
+
+  // Helper to render consistent detailed view for any room
+  const renderRoomDetails = (room, isUnverified = false) => {
+    return (
+      <div style={{ background: isAdminDarkMode ? '#1e293b' : '#f8fafc', padding: '2rem', borderBottom: `1px solid ${isAdminDarkMode ? '#334155' : '#e2e8f0'}`, borderRadius: '0 0 16px 16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 1.5fr', gap: '2.5rem' }}>
+          {/* Left: Media Gallery */}
+          <div>
+            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', background: '#000' }}>
+              <img
+                src={getImageUrl(room.images?.[activeImageIndex])}
+                alt="Room Preview"
+                style={{ width: '100%', height: '300px', objectFit: 'contain' }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 15, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'thin' }}>
+              {room.images.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={getImageUrl(img)}
+                  alt={`thumbnail-${idx}`}
+                  onClick={() => setActiveImageIndex(idx)}
+                  style={{
+                    width: 60, height: 60, borderRadius: 10, objectFit: 'cover', cursor: 'pointer',
+                    border: activeImageIndex === idx ? '3px solid #1a237e' : `1px solid ${isAdminDarkMode ? '#334155' : '#e2e8f0'}`,
+                    transition: 'all 0.2s'
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Detailed Information */}
+          <div style={{ color: isAdminDarkMode ? '#e2e8f0' : '#2d3748' }}>
+            <div className="d-flex justify-content-between align-items-start mb-4">
+              <h5 style={{ fontWeight: 800, margin: 0, color: isAdminDarkMode ? '#60a5fa' : '#1a237e', fontSize: '1.4rem' }}>Property Profile</h5>
+              {room.isBooked && <span className="badge bg-danger px-3 py-2" style={{ borderRadius: 20 }}>Reserved / Booked</span>}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem 2.5rem', background: isAdminDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', padding: '1.5rem', borderRadius: 12 }}>
+              <div><strong style={{ opacity: 0.7 }}>Owner:</strong> <span style={{ fontWeight: 600 }}>{room.ownerName}</span></div>
+              <div><strong style={{ opacity: 0.7 }}>Contact:</strong> <span style={{ fontWeight: 600 }}>{room.ownerContactNumber}</span></div>
+              <div><strong style={{ opacity: 0.7 }}>Room Type:</strong> <span style={{ fontWeight: 600 }}>{room.roomType}</span></div>
+              <div><strong style={{ opacity: 0.7 }}>City:</strong> <span style={{ fontWeight: 600 }}>{room.roomCity}</span></div>
+              <div><strong style={{ opacity: 0.7 }}>Price:</strong> <span style={{ fontWeight: 600, color: '#10b981' }}>Rs {room.price?.toLocaleString()}</span></div>
+              <div><strong style={{ opacity: 0.7 }}>Negotiable:</strong> <span style={{ fontWeight: 600 }}>{room.isNegotiable ? '✅ Yes' : '❌ No'}</span></div>
+              <div style={{ gridColumn: 'span 2' }}><strong style={{ opacity: 0.7 }}>Full Address:</strong> <span style={{ fontWeight: 600 }}>{room.roomAddress}</span></div>
+            </div>
+
+            <div className="mt-4">
+              <strong style={{ fontSize: '0.9rem', color: isAdminDarkMode ? '#94a3b8' : '#718096' }}>Description:</strong>
+              <p className="mt-1" style={{ fontSize: '0.95rem', lineHeight: '1.7', whiteSpace: 'pre-line' }}>{room.description}</p>
+            </div>
+
+            {/* Booking Intelligence Section */}
+            {room.isBooked && (
+              <div className="mt-4 p-4" style={{ background: 'rgba(239, 68, 68, 0.08)', borderRadius: 12, border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                <h6 className="mb-3 d-flex align-items-center gap-2" style={{ color: '#ef4444', fontWeight: 700 }}>
+                  <span>📅</span> Booking Information
+                </h6>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+                  <div><small className="text-muted d-block">Buyer Name</small> <strong>{room.buyerName || 'N/A'}</strong></div>
+                  <div><small className="text-muted d-block">Buyer NIC</small> <strong>{room.buyerNIC || 'N/A'}</strong></div>
+                  <div><small className="text-muted d-block">Contact</small> <strong>{room.buyerContactNumber || 'N/A'}</strong></div>
+                  <div><small className="text-muted d-block">Duration</small> <strong>{room.buyingDuration} Months</strong></div>
+                </div>
+              </div>
+            )}
+
+            {/* Ratings Section */}
+            {room.ratingHistory && room.ratingHistory.length > 0 && (
+              <div className="mt-4 p-4" style={{ background: isAdminDarkMode ? 'rgba(255,255,255,0.05)' : 'white', borderRadius: 12, border: `1px solid ${isAdminDarkMode ? '#334155' : '#e2e8f0'}` }}>
+                <h6 className="mb-3 d-flex align-items-center gap-2" style={{ fontWeight: 700 }}>
+                  <span>⭐</span> Performance & Reviews
+                </h6>
+                <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                  {room.ratingHistory.map((rate, i) => (
+                    <div key={i} className="mb-3 pb-3 border-bottom last-child-border-0">
+                      <div className="d-flex justify-content-between">
+                        <strong>{rate.buyerName}</strong>
+                        <span style={{ color: '#f59e0b' }}>{'★'.repeat(rate.rating)}{'☆'.repeat(5-rate.rating)}</span>
+                      </div>
+                      <p className="small mb-0 text-muted fst-italic">"{rate.description}"</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Verification Controls for Pending Rooms */}
+            {isUnverified && (
+              <div className="mt-5 d-flex gap-3">
+                <button
+                  className="btn btn-primary px-5 py-2 shadow-sm"
+                  style={{ borderRadius: 10, fontWeight: 700, background: '#1a237e', border: 'none' }}
+                  onClick={() => handleVerification(room._id)}
+                >
+                  Approve & List Property
+                </button>
+                <button
+                  className="btn btn-outline-danger px-5 py-2"
+                  style={{ borderRadius: 10, fontWeight: 700 }}
+                  onClick={() => handleRejection(room._id)}
+                >
+                  Reject Application
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Dropdown background and theme UI logic retained natively
   return (
-    <div className={`admin-dashboard-wrapper theme-${theme}`}>
+    <div className={`admin-dashboard-wrapper theme-${theme} ${isAdminDarkMode ? 'theme-dark' : ''}`}>
       {/* Professional Sidebar Navigation */}
       <aside className="admin-sidebar shadow-lg">
         <div className="admin-sidebar-logo">
@@ -542,6 +666,20 @@ function AdminDashboardContent() {
         </nav>
 
         <div className="admin-sidebar-footer">
+          {/* Local Admin Dark Mode Toggle */}
+          <button
+            className="admin-nav-item"
+            style={{ marginBottom: '10px' }}
+            onClick={() => {
+              const newMode = !isAdminDarkMode;
+              setIsAdminDarkMode(newMode);
+              localStorage.setItem("adminDarkMode", newMode);
+            }}
+          >
+            <span className="admin-nav-icon">{isAdminDarkMode ? '☀️' : '🌙'}</span>
+            <span>{isAdminDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+          </button>
+
           {/* Theme Selector Dropdown */}
           <div className="theme-dropdown-container" style={{ position: 'relative', marginBottom: '1rem' }}>
             <button
@@ -859,65 +997,7 @@ function AdminDashboardContent() {
                           {selectedRoom?._id === room._id && (
                             <tr>
                               <td colSpan="5" className="p-0">
-                                <div style={{ background: '#f8fafc', padding: '2rem', borderBottom: '1px solid #e2e8f0' }}>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2.5rem' }}>
-                                    {/* Left: Media */}
-                                    <div>
-                                      <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-                                        <img
-                                          src={`http://localhost:8070${room.images[activeImageIndex]}`}
-                                          alt="Room"
-                                          style={{ width: '100%', height: '240px', objectFit: 'cover' }}
-                                        />
-                                      </div>
-                                      <div style={{ display: 'flex', gap: 10, marginTop: 12, overflowX: 'auto', paddingBottom: 10 }}>
-                                        {room.images.map((img, idx) => (
-                                          <img
-                                            key={idx}
-                                            src={`http://localhost:8070${img}`}
-                                            alt="thumb"
-                                            onClick={() => handleThumbnailClick(idx)}
-                                            style={{
-                                              width: 50, height: 50, borderRadius: 8, objectFit: 'cover', cursor: 'pointer',
-                                              border: activeImageIndex === idx ? '2px solid #1a237e' : '1px solid #e2e8f0'
-                                            }}
-                                          />
-                                        ))}
-                                      </div>
-                                    </div>
-                                    {/* Right: Details */}
-                                    <div style={{ color: '#2d3748' }}>
-                                      <h5 style={{ fontWeight: 700, marginBottom: '1.5rem', color: '#1a237e' }}>Room Details</h5>
-                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem 2rem' }}>
-                                        <div><strong>Owner:</strong> {room.ownerName}</div>
-                                        <div><strong>Contact:</strong> {room.ownerContactNumber}</div>
-                                        <div><strong>Price:</strong> Rs {room.price?.toLocaleString()}</div>
-                                        <div><strong>Negotiable:</strong> {room.isNegotiable ? 'Yes' : 'No'}</div>
-                                        <div style={{ gridColumn: 'span 2' }}><strong>Address:</strong> {room.roomAddress}</div>
-                                      </div>
-                                      <div className="mt-4">
-                                        <strong>Description:</strong>
-                                        <p className="mt-1 text-muted" style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>{room.description}</p>
-                                      </div>
-                                      <div className="mt-4 d-flex gap-3">
-                                        <button
-                                          className="btn btn-success px-4"
-                                          style={{ borderRadius: 8, fontWeight: 600 }}
-                                          onClick={() => handleVerification(room._id)}
-                                        >
-                                          Verify & Publish
-                                        </button>
-                                        <button
-                                          className="btn btn-outline-danger px-4"
-                                          style={{ borderRadius: 8, fontWeight: 600 }}
-                                          onClick={() => handleRejection(room._id)}
-                                        >
-                                          Reject
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                                {renderRoomDetails(room, true)}
                               </td>
                             </tr>
                           )}
@@ -967,9 +1047,7 @@ function AdminDashboardContent() {
                           {selectedRoom?._id === room._id && (
                             <tr>
                               <td colSpan="5" className="p-0">
-                                <div style={{ background: '#f8fafc', padding: '1.5rem' }}>
-                                  <p className="mb-0 text-muted" style={{ fontSize: '0.85rem' }}>Full record for <strong>{room.ownerName}</strong>'s property is stored securely.</p>
-                                </div>
+                                {renderRoomDetails(room, false)}
                               </td>
                             </tr>
                           )}
@@ -1020,7 +1098,7 @@ function AdminDashboardContent() {
                       <th style={{ width: '40px' }}>
                         <input
                           type="checkbox"
-                          checked={selectedStaffIds.length > 0 && selectedStaffIds.length === allStaff.filter(s => s.role !== 'Admin').length}
+                          checked={selectedStaffIds.length > 0 && selectedStaffIds.length === allStaff.filter(s => s.email !== 'faslurrahman128@gmail.com').length}
                           onChange={handleSelectAllStaff}
                           style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
                         />
@@ -1036,7 +1114,7 @@ function AdminDashboardContent() {
                     {allStaff.length > 0 ? allStaff.map((staff) => (
                       <tr key={staff._id}>
                         <td>
-                          {staff.role !== 'Admin' && (
+                          {staff.email !== 'faslurrahman128@gmail.com' && (
                             <input
                               type="checkbox"
                               checked={selectedStaffIds.includes(staff._id)}
@@ -1063,7 +1141,7 @@ function AdminDashboardContent() {
                         </td>
                         <td style={{ textAlign: 'right', background: 'transparent' }}>
                           <div className="d-flex justify-content-end align-items-center gap-2" style={{ background: 'transparent' }}>
-                            {staff.role === 'Admin' && staff.isActive !== false ? (
+                            {staff.email === 'faslurrahman128@gmail.com' && staff.isActive !== false ? (
                               <span style={{ 
                                 color: '#1a237e', 
                                 fontWeight: 600, 
@@ -1073,7 +1151,7 @@ function AdminDashboardContent() {
                                 alignItems: 'center',
                                 gap: '5px'
                               }}>
-                                🛡️ Protected
+                                👑 Primary Admin
                               </span>
                             ) : (
                               <button

@@ -38,6 +38,11 @@ const AdminSchema = new Schema({
         type: Date,
         default: Date.now 
     },
+
+    isActive: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 // Create a method to compare passwords during login

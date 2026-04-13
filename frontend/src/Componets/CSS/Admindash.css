@@ -272,3 +272,46 @@
     display: none;
   }
 }
+
+/* ── Dark Mode Overrides ────────────────────────────────── */
+.theme-dark {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+.theme-dark .admin-dashboard-wrapper,
+.theme-dark .admin-main-content {
+  background: #0f172a !important;
+}
+.theme-dark .stat-card,
+.theme-dark .admin-table-container {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
+  color: #f8fafc;
+}
+.theme-dark .stat-info div {
+  color: #ffffff !important;
+}
+.theme-dark .admin-page-title,
+.theme-dark h2, .theme-dark h3, .theme-dark h4 {
+  color: #f8fafc !important;
+}
+.theme-dark .admin-table th {
+  background-color: #1e293b;
+  color: #94a3b8;
+  border-bottom: 2px solid #334155;
+}
+.theme-dark .admin-table td {
+  border-bottom: 1px solid #334155;
+  color: #cbd5e1;
+}
+.theme-dark .Admin-glass-header {
+  background: rgba(30, 41, 59, 0.8) !important;
+}
+.theme-dark .text-muted {
+  color: #94a3b8 !important;
+}
+.theme-dark .admin-sidebar {
+  background: #121826;
+  border-right: 1px solid #1e293b;
+}
