@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 // Supported themes
 export const THEMES = {
   DEFAULT: "default",
+  DARK: "dark",
   RAMADAN: "ramadan",
   CHRISTMAS: "christmas",
   NEWYEAR: "newyear",

@@ -144,7 +144,7 @@ function BookRoomPage() {
             <div className="carousel-inner">
               <div className="carousel-item active">
                 <img
-                  src={`http://localhost:8070${room.images[activeImageIndex]}`}
+                  src={room.images?.[activeImageIndex]?.startsWith('http') ? room.images[activeImageIndex] : `http://localhost:8070${room.images?.[activeImageIndex]?.startsWith('/') ? room.images[activeImageIndex] : '/uploads/' + room.images?.[activeImageIndex]}`}
                   alt={`Room ${activeImageIndex + 1}`}
                   className="d-block w-100"
                   style={{ maxWidth: '500px', maxHeight: '300px', margin: 'auto', borderRadius: '10px', marginTop: '10px'}} // Custom image size
@@ -158,7 +158,7 @@ function BookRoomPage() {
                       {room.images.map((image, index) => (
                         <img
                           key={index}
-                          src={`http://localhost:8070${image}`}
+                          src={image?.startsWith('http') ? image : `http://localhost:8070${image?.startsWith('/') ? image : '/uploads/' + image}`}
                           alt={`Thumbnail ${index + 1}`}
                           className="img-thumbnail"
                           style={{ width: '60px', height: '60px', cursor: 'pointer', objectFit: 'cover', borderRadius: '5px' }}

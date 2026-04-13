@@ -209,6 +209,8 @@ function StaffLogin() {
       setMessage(`Welcome back, ${response.data.username}!`);
       setAlertType("success");
       sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("staffEmail", email);
+      sessionStorage.setItem("staffName", response.data.username);
       navigate("/StaffDashboard", {
         state: { message: `Welcome, ${response.data.username}!`, alertType: "success" },
       });

@@ -63,7 +63,7 @@ function BgGear({ size, top, left, right, bottom, opacity, speed, direction }) {
   );
 }
 
-/* ─── Particle Canvas ───────────────────────────────────── */
+/* ─── Particle Canvas ──────────────────── */
 function Particles({ containerRef }) {
   const canvasRef = useRef(null);
   const animRef = useRef(null);

@@ -49,7 +49,7 @@ const addRoom = async (req, res) => {
       return res.status(400).json({ error: "You must upload between 1 and 10 images." });
     }
 
-    const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
+    const imagePaths = req.files.map((file) => file.path);
 
     const newRoom = new Room({
       roomAddress,
@@ -88,18 +88,13 @@ const updateRoom = async (req, res) => {
     const { keepImages = "[]" } = req.body;
     const imagesToKeep = JSON.parse(keepImages);
 
-    // Delete removed images from server
-    room.images.forEach((imagePath) => {
-      if (!imagesToKeep.includes(imagePath)) {
-        const filePath = path.join(__dirname, "..", imagePath);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      }
-    });
-
+    // Old manual deletion logic removed as we are now using cloud storage.
+    // Cloudinary images are managed via the Cloudinary dashboard or specialized cleanup scripts.
+    
     room.images = imagesToKeep;
 
     if (req.files && req.files.length > 0) {
-      const uploadedImages = req.files.map((file) => `/uploads/${file.filename}`);
+      const uploadedImages = req.files.map((file) => file.path);
       room.images.push(...uploadedImages);
     }
 
@@ -121,12 +116,8 @@ const deleteRoom = async (req, res) => {
 
     if (!deletedRoom) return res.status(404).json({ error: "Room not found or not authorized" });
 
-    // Delete room images from server
-    deletedRoom.images.forEach((imagePath) => {
-      const filePath = path.join(__dirname, "..", imagePath);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    });
-
+    // Note: Cloudinary image deletion can be added here using cloudinary.uploader.destroy if needed.
+    
     res.status(200).json({ message: "Room deleted successfully" });
   } catch (err) {
     console.error("Error deleting room:", err);
