@@ -212,6 +212,7 @@ function StaffLogin() {
       sessionStorage.setItem("staffEmail", email);
       sessionStorage.setItem("staffName", response.data.username);
       sessionStorage.setItem("staffRole", response.data.role);
+      sessionStorage.setItem("role", response.data.role);
       // Redirect based on role
       if (response.data.role === "Service_Agent") {
         navigate("/service-agent-dash", {

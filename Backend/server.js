@@ -7,6 +7,7 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 require("dotenv").config(); // Load environment variables from .env file
 const fs = require("fs");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
@@ -52,8 +53,17 @@ connection.once("open", () => {
 const Room = require("./models/Room");
 const User = require("./models/User"); 
 const Admin = require("./models/Admin");
+const Employee = require("./models/Employee");
 const Ticket = require("./models/Ticket");
 const serviceProvider = require("./models/serviceProvider");
+
+// Temporary in-memory OTP store for admin password reset
+const adminResetOtpStore = new Map();
+
+const hashOtp = (otp) =>
+  crypto.createHash("sha256").update(String(otp)).digest("hex");
+
+const generateOtp = () => `${Math.floor(100000 + Math.random() * 900000)}`;
 
 // Multer setup for Cloudinary image uploads
 const storage = new CloudinaryStorage({
@@ -225,12 +235,137 @@ app.post("/admin/login", async (req, res) => {
     
     res.json({ 
       token, 
+      userId: admin._id,
       username: admin.name,
       role: "Admin"
     });
   } catch (err) {
     console.error("Error during admin login:", err.message);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Request OTP for admin password reset
+app.post("/admin/forgot-password/request-otp", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email is required." });
+  }
+
+  try {
+    let account = await Admin.findOne({ email });
+    let source = "Admin";
+
+    if (!account) {
+      account = await Employee.findOne({ email, role: "Admin" });
+      source = "Employee";
+    }
+
+    if (!account) {
+      return res.status(404).json({ error: "No admin account found for this email." });
+    }
+
+    const otp = generateOtp();
+    const otpHash = hashOtp(otp);
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    adminResetOtpStore.set(email.toLowerCase(), {
+      otpHash,
+      expiresAt,
+      source,
+      attemptsLeft: 5,
+    });
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Bird Nest Security" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Bird Nest Admin Password Reset OTP",
+      html: `
+        <div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;padding:20px;border:1px solid #e5e7eb;border-radius:12px;">
+          <h2 style="margin-top:0;color:#1a237e;">Bird Nest Admin Security</h2>
+          <p>Your one-time password (OTP) to reset admin password is:</p>
+          <div style="font-size:28px;font-weight:700;letter-spacing:6px;color:#0f172a;background:#f8fafc;padding:14px 18px;border-radius:10px;display:inline-block;">
+            ${otp}
+          </div>
+          <p style="margin-top:16px;">This OTP will expire in 10 minutes.</p>
+          <p style="color:#64748b;font-size:13px;">If you did not request this, you can ignore this email.</p>
+        </div>
+      `,
+    });
+
+    return res.json({ message: "OTP sent successfully. Please check your email." });
+  } catch (err) {
+    console.error("Error sending admin reset OTP:", err.message);
+    return res.status(500).json({ error: "Failed to send OTP email." });
+  }
+});
+
+// Reset admin password using OTP
+app.post("/admin/forgot-password/reset", async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({ error: "Email, OTP, and new password are required." });
+  }
+
+  if (String(newPassword).length < 8) {
+    return res.status(400).json({ error: "New password must be at least 8 characters." });
+  }
+
+  const key = email.toLowerCase();
+  const otpEntry = adminResetOtpStore.get(key);
+
+  if (!otpEntry) {
+    return res.status(400).json({ error: "No OTP request found. Please request a new OTP." });
+  }
+
+  if (Date.now() > otpEntry.expiresAt) {
+    adminResetOtpStore.delete(key);
+    return res.status(400).json({ error: "OTP expired. Please request a new OTP." });
+  }
+
+  if (otpEntry.attemptsLeft <= 0) {
+    adminResetOtpStore.delete(key);
+    return res.status(429).json({ error: "Too many invalid attempts. Request a new OTP." });
+  }
+
+  const isOtpValid = hashOtp(otp) === otpEntry.otpHash;
+  if (!isOtpValid) {
+    otpEntry.attemptsLeft -= 1;
+    adminResetOtpStore.set(key, otpEntry);
+    return res.status(400).json({ error: `Invalid OTP. Attempts left: ${otpEntry.attemptsLeft}` });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    let account = await Admin.findOne({ email });
+    if (!account) {
+      account = await Employee.findOne({ email, role: "Admin" });
+    }
+
+    if (!account) {
+      adminResetOtpStore.delete(key);
+      return res.status(404).json({ error: "Admin account not found." });
+    }
+
+    account.password = hashedPassword;
+    await account.save();
+
+    adminResetOtpStore.delete(key);
+    return res.json({ message: "Password reset successful. Please login with your new password." });
+  } catch (err) {
+    console.error("Error resetting admin password:", err.message);
+    return res.status(500).json({ error: "Failed to reset password." });
   }
 });
 
@@ -265,6 +400,9 @@ app.use("/serviceProvider", serviceProviderRoutes);
 
 const ticketRoutes = require("./Routes/ticketRoute");
 app.use("/Ticket", ticketRoutes);
+
+const internalChatRoutes = require("./Routes/internalChatRoute");
+app.use("/internal-chat", internalChatRoutes);
 
 // Error handling for unhandled routes
 app.use((req, res) => {

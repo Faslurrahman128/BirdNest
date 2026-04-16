@@ -48,7 +48,7 @@ router.get("/chatHistory", auth, getChatHistory,);
 
 // Admin Routes (Verification)
 router.get("/unverified", adminAuth, getUnverifiedRooms);
-router.put("/verify/:id", adminAuth, verifyRoom);
+router.put("/verify/:id", auth, verifyRoom);
 
 module.exports = router;
 

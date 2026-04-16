@@ -104,6 +104,9 @@ function ServiceAgentDash() {
             <li>
               <Link to="/service-provider-verify"><FaUserCheck /> Verified Providers</Link>
             </li>
+            <li>
+              <Link to="/internal-chat"><FaClipboardList /> Admin Chat</Link>
+            </li>
             <li className="logout">
               <Link to="/"><FaSignOutAlt /> Logout</Link>
             </li>

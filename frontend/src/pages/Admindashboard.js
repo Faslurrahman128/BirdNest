@@ -663,6 +663,14 @@ function AdminDashboardContent() {
             <span className="admin-nav-icon">🛡️</span>
             <span>Staff Registration</span>
           </button>
+
+          <button
+            className="admin-nav-item"
+            onClick={() => navigate("/internal-chat")}
+          >
+            <span className="admin-nav-icon">💬</span>
+            <span>Service Agent Chat</span>
+          </button>
         </nav>
 
         <div className="admin-sidebar-footer">
@@ -1023,6 +1031,7 @@ function AdminDashboardContent() {
                       <tr>
                         <th>Guest House</th>
                         <th>Approval Date</th>
+                        <th>Approved By</th>
                         <th>Price</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -1034,6 +1043,11 @@ function AdminDashboardContent() {
                           <tr style={{ cursor: 'pointer' }} onClick={() => handleRoomClick(room)}>
                             <td style={{ fontWeight: 600 }}>{room.name || room.roomType}</td>
                             <td style={{ color: '#64748b' }}>{room.verifiedAt ? new Date(room.verifiedAt).toLocaleDateString() : '-'}</td>
+                            <td style={{ color: '#64748b' }}>
+                              {room.verifiedByName
+                                ? `${room.verifiedByName}${room.verifiedByRole ? ` (${room.verifiedByRole})` : ''}`
+                                : '-'}
+                            </td>
                             <td>Rs {room.price?.toLocaleString()}</td>
                             <td>
                               {room.rejected ? (
@@ -1046,7 +1060,7 @@ function AdminDashboardContent() {
                           </tr>
                           {selectedRoom?._id === room._id && (
                             <tr>
-                              <td colSpan="5" className="p-0">
+                              <td colSpan="6" className="p-0">
                                 {renderRoomDetails(room, false)}
                               </td>
                             </tr>
