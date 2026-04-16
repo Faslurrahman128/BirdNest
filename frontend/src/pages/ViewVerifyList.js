@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import AppHeader from "../Componets/AppHeader";
 import "../Componets/CSS/ViewServiceProvider.css";
 import { FaHome, FaUserClock, FaUserCheck, FaClipboardList, FaSignOutAlt, FaSearch, FaDownload } from "react-icons/fa";
 
 function ViewVerifyList() {
+  const sidebarWidth = 210;
   const [verifiedProviders, setVerifiedProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,7 +102,21 @@ function ViewVerifyList() {
   };
 
   return (
-    <div className="dashboard-container">
+    <div style={{ width: '100%', minHeight: '100vh', background: '#f8f9fa' }}>
+      <div
+        style={{
+          width: `calc(100% - ${sidebarWidth}px)`,
+          marginLeft: `${sidebarWidth}px`,
+          display: 'flex',
+          justifyContent: 'center'
+        }}
+      >
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+          <AppHeader appName="Bird Nest" tagline="Service Agent Portal" />
+        </div>
+      </div>
+      <div style={{ width: '95%', maxWidth: '1400px', margin: '0 auto' }}>
+      <div className="dashboard-container" style={{ width: '100%', margin: '0', boxSizing: 'border-box' }}>
       {/* Toast Container for Notifications */}
       <div id="toast-container"></div>
       
@@ -204,6 +220,8 @@ function ViewVerifyList() {
           </div>
         )}
       </div>
+    </div>
+    </div>
     </div>
   );
 }

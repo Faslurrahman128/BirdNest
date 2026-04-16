@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import AppHeader from "../Componets/AppHeader";
 import '../Componets/CSS/ViewServiceProvider.css';
 import '../Componets/CSS/serviceAgentDash.css';
 import { FaHome, FaUserClock, FaUserCheck, FaClipboardList, FaSignOutAlt, FaChartBar, FaCalendarAlt } from "react-icons/fa";
 
 function ServiceAgentDash() {
+  const sidebarWidth = 210;
   const [serviceTypeData, setServiceTypeData] = useState([]);
   const [dailyRegistrations, setDailyRegistrations] = useState([]);
   const [totalProviders, setTotalProviders] = useState(0);
@@ -70,30 +72,43 @@ function ServiceAgentDash() {
   };
 
   return (
-    <div className="dashboard-container">
-      {/* Toast Container for Notifications */}
-      <div id="toast-container"></div>
-      
-      {/* Sidebar Navigation */}
-      <nav className="dashboard-menu">
-        <div className="dashboard-brand">
-          <h2>Service Agent Panel</h2>
+    <div style={{ width: '100%', minHeight: '100vh', background: '#f8f9fa' }}>
+      <div
+        style={{
+          width: `calc(100% - ${sidebarWidth}px)`,
+          marginLeft: `${sidebarWidth}px`,
+          display: 'flex',
+          justifyContent: 'center'
+        }}
+      >
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+          <AppHeader appName="Bird Nest" tagline="Service Agent Portal" />
         </div>
-        <ul>
-          <li className="active">
-            <Link to="/service-agent-dash"><FaHome /> Dashboard</Link>
-          </li>
-          <li>
-            <Link to="/service-provider-list"><FaUserClock /> Unverified Providers</Link>
-          </li>
-          <li>
-            <Link to="/service-provider-verify"><FaUserCheck /> Verified Providers</Link>
-          </li>
-          <li className="logout">
-            <Link to="/"><FaSignOutAlt /> Logout</Link>
-          </li>
-        </ul>
-      </nav>
+      </div>
+      <div style={{ width: '95%', maxWidth: '1400px', margin: '0 auto' }}>
+        <div className="dashboard-container" style={{ width: '100%', margin: '0', boxSizing: 'border-box' }}>
+        {/* Toast Container for Notifications */}
+        <div id="toast-container"></div>
+        {/* Sidebar Navigation */}
+        <nav className="dashboard-menu">
+          <div className="dashboard-brand">
+            <h2>Service Agent Panel</h2>
+          </div>
+          <ul>
+            <li className="active">
+              <Link to="/service-agent-dash"><FaHome /> Dashboard</Link>
+            </li>
+            <li>
+              <Link to="/service-provider-list"><FaUserClock /> Unverified Providers</Link>
+            </li>
+            <li>
+              <Link to="/service-provider-verify"><FaUserCheck /> Verified Providers</Link>
+            </li>
+            <li className="logout">
+              <Link to="/"><FaSignOutAlt /> Logout</Link>
+            </li>
+          </ul>
+        </nav>
 
       {/* Main Content */}
       <div className="content-container">
@@ -230,7 +245,9 @@ function ServiceAgentDash() {
             </div>
           </>
         )}
+        </div>
       </div>
+    </div>
     </div>
   );
 }

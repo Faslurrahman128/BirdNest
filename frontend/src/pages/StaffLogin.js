@@ -211,9 +211,17 @@ function StaffLogin() {
       sessionStorage.setItem("token", response.data.token);
       sessionStorage.setItem("staffEmail", email);
       sessionStorage.setItem("staffName", response.data.username);
-      navigate("/StaffDashboard", {
-        state: { message: `Welcome, ${response.data.username}!`, alertType: "success" },
-      });
+      sessionStorage.setItem("staffRole", response.data.role);
+      // Redirect based on role
+      if (response.data.role === "Service_Agent") {
+        navigate("/service-agent-dash", {
+          state: { message: `Welcome, ${response.data.username}!`, alertType: "success" },
+        });
+      } else {
+        navigate("/StaffDashboard", {
+          state: { message: `Welcome, ${response.data.username}!`, alertType: "success" },
+        });
+      }
     } catch (err) {
       setMessage(err?.response?.data?.error || "Staff login failed!");
       setAlertType("danger");
@@ -381,6 +389,7 @@ function StaffLogin() {
         <div className="staff-card-footer">
           <span>Not a staff member? </span>
           <a href="/AdminLogin" className="staff-footer-link">Admin Login</a>
+          <br />
         </div>
       </div>
       </div>

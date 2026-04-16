@@ -1,3 +1,4 @@
+import ServiceAgentLogin from './pages/ServiceAgentLogin.js';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "./ThemeContext";
@@ -75,6 +76,7 @@ function App() {
             <Route path="/Terms" element={<Terms />} />
 
             <Route path="/register-service-provider" element={<RegisterServiceProvider />} />
+            <Route path="/service-agent-login" element={<ServiceAgentLogin />} />
             <Route path="/service-agent-dash" element={<ServiceAgentDashboard />} />
             <Route path="/service-provider-list" element={<ViewServiceProviders />} />
             <Route path="/service-provider-verify" element={<ViewVerifyList />} />

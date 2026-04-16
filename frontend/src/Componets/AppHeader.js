@@ -37,8 +37,7 @@ const AppHeader = ({
   const showTree = theme === THEMES.CHRISTMAS;
 
   return (
-    <div style={{ width: '100%', boxSizing: 'border-box', zIndex: 10, padding: 0, flexShrink: 0 }}>
-      <header className="admin-glass-header admin-glass-header-left">
+    <header className="admin-glass-header admin-glass-header-left">
         <div className="admin-glass-header-content-left" style={{ position: 'relative' }}>
           <div style={{ position: 'relative', display: 'inline-block' }}>
             <img src={logo} alt="LOGO" className="admin-glass-logo" />
@@ -136,7 +135,6 @@ const AppHeader = ({
           {/* Logout button removed as requested */}
         </div>
       </header>
-    </div>
   );
 };
 
