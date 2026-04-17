@@ -263,6 +263,7 @@ function AdminLogin() {
       setMessage(`Welcome back, ${response.data.username}!`);
       setAlertType("success");
       sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("userId", response.data.userId || "");
       sessionStorage.setItem("role", "admin");
       sessionStorage.setItem("staffRole", "Admin");
       sessionStorage.setItem("staffName", response.data.username || "Admin");

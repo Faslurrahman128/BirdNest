@@ -8,6 +8,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const http = require("http");
+const { Server } = require("socket.io");
 require("dotenv").config(); // Load environment variables from .env file
 const fs = require("fs");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
@@ -15,6 +17,14 @@ const cloudinary = require("./config/cloudinary");
 
 
 const app = express();
+const httpServer = http.createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST", "PUT"],
+  },
+});
+app.set("io", io);
 
 // Serve static files (images) from the 'uploads' folder (MUST be before any routes)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -56,6 +66,7 @@ const Admin = require("./models/Admin");
 const Employee = require("./models/Employee");
 const Ticket = require("./models/Ticket");
 const serviceProvider = require("./models/serviceProvider");
+const InternalChatMessage = require("./models/InternalChatMessage");
 
 // Temporary in-memory OTP store for admin password reset
 const adminResetOtpStore = new Map();
@@ -64,6 +75,133 @@ const hashOtp = (otp) =>
   crypto.createHash("sha256").update(String(otp)).digest("hex");
 
 const generateOtp = () => `${Math.floor(100000 + Math.random() * 900000)}`;
+
+const normalizeRole = (role = "") => role.toString().toLowerCase();
+const isAdminRole = (role = "") => normalizeRole(role) === "admin";
+const isServiceAgentRole = (role = "") => normalizeRole(role) === "service_agent";
+
+async function resolveIdentityById(id) {
+  const admin = await Admin.findById(id).select("name isActive");
+  if (admin) {
+    return {
+      id: String(admin._id),
+      name: admin.name || "Admin",
+      role: "admin",
+      isActive: admin.isActive !== false,
+    };
+  }
+
+  const employee = await Employee.findById(id).select("name role isActive");
+  if (employee) {
+    return {
+      id: String(employee._id),
+      name: employee.name || "Staff",
+      role: employee.role || "Staff",
+      isActive: employee.isActive !== false,
+    };
+  }
+
+  return null;
+}
+
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake?.auth?.token || socket.handshake?.query?.token;
+    if (!token) return next(new Error("Authentication token missing"));
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.user = {
+      id: String(decoded.id),
+      role: decoded.role || "",
+    };
+    next();
+  } catch (err) {
+    next(new Error("Authentication failed"));
+  }
+});
+
+io.on("connection", (socket) => {
+  const userId = socket.user?.id;
+  if (!userId) return;
+
+  socket.join(`user:${userId}`);
+
+  socket.on("internal:typing", ({ toUserId, isTyping }) => {
+    if (!toUserId) return;
+
+    io.to(`user:${String(toUserId)}`).emit("internal:typing", {
+      fromUserId: userId,
+      isTyping: !!isTyping,
+    });
+  });
+
+  socket.on("internal:send", async ({ toUserId, text }) => {
+    try {
+      if (!toUserId || !text || !String(text).trim()) return;
+
+      const senderIdentity = await resolveIdentityById(userId);
+      const receiverIdentity = await resolveIdentityById(toUserId);
+      if (!senderIdentity || !receiverIdentity) return;
+      if (!senderIdentity.isActive || !receiverIdentity.isActive) return;
+
+      const senderIsAdmin = isAdminRole(senderIdentity.role);
+      const senderIsAgent = isServiceAgentRole(senderIdentity.role);
+      const receiverIsAdmin = isAdminRole(receiverIdentity.role);
+      const receiverIsAgent = isServiceAgentRole(receiverIdentity.role);
+
+      const validPair =
+        (senderIsAdmin && receiverIsAgent) ||
+        (senderIsAgent && receiverIsAdmin);
+
+      if (!validPair) return;
+
+      const message = await InternalChatMessage.create({
+        senderId: senderIdentity.id,
+        senderRole: senderIdentity.role,
+        senderName: senderIdentity.name,
+        receiverId: receiverIdentity.id,
+        receiverRole: receiverIdentity.role,
+        receiverName: receiverIdentity.name,
+        text: String(text).trim(),
+        readAt: null,
+      });
+
+      io.to(`user:${senderIdentity.id}`).emit("internal:new-message", message);
+      io.to(`user:${receiverIdentity.id}`).emit("internal:new-message", message);
+    } catch (error) {
+      console.error("[SOCKET] internal:send error", error.message);
+    }
+  });
+
+  socket.on("internal:read", async ({ withUserId }) => {
+    try {
+      if (!withUserId) return;
+      const readAt = new Date();
+
+      await InternalChatMessage.updateMany(
+        {
+          senderId: String(withUserId),
+          receiverId: String(userId),
+          readAt: null,
+        },
+        {
+          $set: { readAt },
+        }
+      );
+
+      const payload = {
+        byUserId: String(userId),
+        withUserId: String(withUserId),
+        readAt,
+      };
+
+      io.to(`user:${String(withUserId)}`).emit("internal:read-update", payload);
+      io.to(`user:${String(userId)}`).emit("internal:read-update", payload);
+    } catch (error) {
+      console.error("[SOCKET] internal:read error", error.message);
+    }
+  });
+});
 
 // Multer setup for Cloudinary image uploads
 const storage = new CloudinaryStorage({
@@ -416,6 +554,6 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server is up and running on port number: ${PORT}`);
 });

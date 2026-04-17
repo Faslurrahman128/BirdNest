@@ -209,6 +209,7 @@ function StaffLogin() {
       setMessage(`Welcome back, ${response.data.username}!`);
       setAlertType("success");
       sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("userId", response.data.userId || "");
       sessionStorage.setItem("staffEmail", email);
       sessionStorage.setItem("staffName", response.data.username);
       sessionStorage.setItem("staffRole", response.data.role);

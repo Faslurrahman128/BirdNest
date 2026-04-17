@@ -9,6 +9,11 @@ const internalChatMessageSchema = new mongoose.Schema(
     receiverRole: { type: String, required: true },
     receiverName: { type: String, required: true },
     text: { type: String, required: true, trim: true, maxlength: 1500 },
+    readAt: { type: Date, default: null },
+    editedAt: { type: Date, default: null },
+    isDeletedForEveryone: { type: Boolean, default: false },
+    deletedForEveryoneAt: { type: Date, default: null },
+    hiddenFor: [{ type: mongoose.Schema.Types.ObjectId }],
   },
   { timestamps: true }
 );
