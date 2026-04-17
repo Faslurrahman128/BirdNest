@@ -41,6 +41,7 @@ import CustomerCareLogin from'./pages/CustomerCareLogin.js';
 import CustomerCareRegister from './pages/CustomerCareRegister.js';
 import CustomerCareDashboard from './pages/CustomerCareDashboard.js';
 import StaffDashboard from './pages/StaffDashboard.js';
+import InternalChat from './pages/InternalChat.js';
 
 function App() {
   return (
@@ -90,6 +91,7 @@ function App() {
             <Route path="/CustomerCareRegister" element={<CustomerCareRegister />} />
             <Route path="/CustomerCareDashboard" element={<CustomerCareDashboard />} />
             <Route path="/StaffDashboard" element={<StaffDashboard />} />
+            <Route path="/internal-chat" element={<InternalChat />} />
 
           </Routes>
         </div>

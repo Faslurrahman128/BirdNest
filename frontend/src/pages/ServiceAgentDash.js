@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { io } from "socket.io-client";
 import AppHeader from "../Componets/AppHeader";
 import '../Componets/CSS/ViewServiceProvider.css';
 import '../Componets/CSS/serviceAgentDash.css';
@@ -14,6 +15,35 @@ function ServiceAgentDash() {
   const [verifiedProviders, setVerifiedProviders] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [chatToasts, setChatToasts] = useState([]);
+  const [chatUnreadCount, setChatUnreadCount] = useState(() => Number(sessionStorage.getItem("serviceAgentChatUnreadCount") || 0));
+
+  const token = sessionStorage.getItem("token");
+  const myId = sessionStorage.getItem("userId") || "";
+  const myRole = (sessionStorage.getItem("role") || sessionStorage.getItem("staffRole") || "").toLowerCase();
+
+  const resolveAuthContext = () => {
+    let resolvedId = myId;
+    let resolvedRole = myRole;
+
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (!resolvedId) resolvedId = payload?.id || "";
+        if (!resolvedRole) resolvedRole = (payload?.role || "").toLowerCase();
+      } catch (_) {}
+    }
+
+    return { resolvedId, resolvedRole };
+  };
+
+  const pushChatToast = (text) => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setChatToasts((prev) => [...prev.slice(-3), { id, text }]);
+    setTimeout(() => {
+      setChatToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3500);
+  };
 
   useEffect(() => {
     // Fetch all required data when component mounts
@@ -59,6 +89,40 @@ function ServiceAgentDash() {
     fetchDashboardData();
   }, []);
 
+  useEffect(() => {
+    if (!token) return;
+    const { resolvedId, resolvedRole } = resolveAuthContext();
+    if (resolvedRole !== "service_agent") return;
+
+    const socket = io("http://localhost:8070", {
+      auth: { token },
+      transports: ["websocket", "polling"],
+    });
+
+    socket.on("internal:new-message", (msg) => {
+      const receiverRole = (msg.receiverRole || "").toString().toLowerCase();
+      const toAgentById = resolvedId && String(msg.receiverId) === String(resolvedId);
+      const toAgentByRole = receiverRole === "service_agent";
+      if (!toAgentById && !toAgentByRole) return;
+
+      pushChatToast(`New message from ${msg.senderName}`);
+      setChatUnreadCount((prev) => {
+        const next = prev + 1;
+        sessionStorage.setItem("serviceAgentChatUnreadCount", String(next));
+        return next;
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [token, myId, myRole]);
+
+  const handleOpenChat = () => {
+    setChatUnreadCount(0);
+    sessionStorage.setItem("serviceAgentChatUnreadCount", "0");
+  };
+
   // Get colors for service types
   const getServiceTypeColor = (index) => {
     const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#a4de6c', '#d0ed57'];
@@ -103,6 +167,31 @@ function ServiceAgentDash() {
             </li>
             <li>
               <Link to="/service-provider-verify"><FaUserCheck /> Verified Providers</Link>
+            </li>
+            <li>
+              <Link to="/internal-chat" onClick={handleOpenChat}>
+                <FaClipboardList /> Admin Chat
+                {chatUnreadCount > 0 && (
+                  <span
+                    style={{
+                      marginLeft: 8,
+                      minWidth: 18,
+                      height: 18,
+                      borderRadius: 999,
+                      background: "#ef4444",
+                      color: "#fff",
+                      fontSize: 11,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0 6px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
+                  </span>
+                )}
+              </Link>
             </li>
             <li className="logout">
               <Link to="/"><FaSignOutAlt /> Logout</Link>
@@ -247,6 +336,35 @@ function ServiceAgentDash() {
         )}
         </div>
       </div>
+    </div>
+
+    <div
+      style={{
+        position: "fixed",
+        right: 16,
+        bottom: 16,
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        zIndex: 9999,
+      }}
+    >
+      {chatToasts.map((toast) => (
+        <div
+          key={toast.id}
+          style={{
+            background: "#0f172a",
+            color: "#fff",
+            padding: "10px 12px",
+            borderRadius: 10,
+            minWidth: 220,
+            boxShadow: "0 10px 30px rgba(2,6,23,0.35)",
+            fontSize: 13,
+          }}
+        >
+          {toast.text}
+        </div>
+      ))}
     </div>
     </div>
   );

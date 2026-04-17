@@ -1,4 +1,6 @@
 const Room = require("../models/Room");
+const Employee = require("../models/Employee");
+const Admin = require("../models/Admin");
 const path = require("path");
 const fs = require("fs");
 
@@ -139,6 +141,11 @@ const getUnverifiedRooms = async (req, res) => {
 // Verify (Approve/Reject) a room
 const verifyRoom = async (req, res) => {
   try {
+    const role = (req.userRole || "").toString().toLowerCase();
+    if (!["admin", "staff"].includes(role)) {
+      return res.status(403).json({ error: "Access denied. Only admin/staff can verify rooms." });
+    }
+
     if (typeof req.body.isVerified !== "boolean" || typeof req.body.rejected !== "boolean") {
       return res.status(400).json({ error: "Invalid value for isVerified or rejected" });
     }
@@ -152,8 +159,30 @@ const verifyRoom = async (req, res) => {
     // If verifying (approving), set verifiedAt
     if (req.body.isVerified && !req.body.rejected) {
       updateFields.verifiedAt = new Date();
+
+      let approverName = "Unknown";
+      let approverRole = req.userRole || "Staff";
+
+      const staff = await Employee.findById(req.userId).select("name role");
+      if (staff) {
+        approverName = staff.name || "Staff";
+        approverRole = staff.role || approverRole;
+      } else {
+        const admin = await Admin.findById(req.userId).select("name role");
+        if (admin) {
+          approverName = admin.name || "Admin";
+          approverRole = admin.role || "Admin";
+        }
+      }
+
+      updateFields.verifiedById = req.userId;
+      updateFields.verifiedByName = approverName;
+      updateFields.verifiedByRole = approverRole;
     } else if (!req.body.isVerified) {
       updateFields.verifiedAt = undefined;
+      updateFields.verifiedById = undefined;
+      updateFields.verifiedByName = undefined;
+      updateFields.verifiedByRole = undefined;
     }
 
     const updatedRoom = await Room.findByIdAndUpdate(

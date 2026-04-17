@@ -11,7 +11,8 @@ const SEASONAL_GREETINGS = {
   [THEMES.RAMADAN]: "Ramadan Mubarak!",
   [THEMES.CHRISTMAS]: "Merry Christmas!",
   [THEMES.NEWYEAR]: "Happy New Year!",
-  [THEMES.PONGAL]: "Happy Pongal!"
+  [THEMES.PONGAL]: "Happy Pongal!",
+  [THEMES.VESAK]: "Happy Vesak!"
 };
 
 // --- Particle System ---
@@ -209,9 +210,11 @@ function StaffLogin() {
       setMessage(`Welcome back, ${response.data.username}!`);
       setAlertType("success");
       sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("userId", response.data.userId || "");
       sessionStorage.setItem("staffEmail", email);
       sessionStorage.setItem("staffName", response.data.username);
       sessionStorage.setItem("staffRole", response.data.role);
+      sessionStorage.setItem("role", response.data.role);
       // Redirect based on role
       if (response.data.role === "Service_Agent") {
         navigate("/service-agent-dash", {
