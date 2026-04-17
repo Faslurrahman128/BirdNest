@@ -4,6 +4,7 @@ import ramadanMoon from "../assets/ramadan-moon.jpg";
 import ramadanLantern from "../assets/ramadan-lantern.jpg";
 import fireworkIcon from "../assets/firework-icon.png";
 import pongalImg from "../assets/thaipongal.png";
+import vesakImg from "../assets/vesak.png";
 import capAsset from '../assets/cap.png';
 import giftAsset from '../assets/gift.png';
 import treeAsset from '../assets/tree.png';
@@ -108,6 +109,9 @@ const AppHeader = ({
                 )}
                 {theme === THEMES.PONGAL && (
                   <img src={pongalImg} alt="Pongal" style={{ width: 68, height: 68, position: 'relative', top: '-6px' }} />
+                )}
+                {theme === THEMES.VESAK && (
+                  <img src={vesakImg} alt="Vesak" style={{ width: 64, height: 64, objectFit: 'contain', filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.25))' }} />
                 )}
                 {showTree && (
                   <img src={treeAsset} alt="Tree" style={{ width: 50, height: 50, objectFit: 'contain', filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.2))' }} />

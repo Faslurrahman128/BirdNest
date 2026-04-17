@@ -7,6 +7,7 @@ import { io } from "socket.io-client";
 import AppHeader from "../Componets/AppHeader";
 import "../Componets/CSS/admin-glass.css";
 import logo from "../Componets/assets/APPLOGO.png";
+import vesakBackground from "../assets/vesak.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -538,6 +539,8 @@ function AdminDashboardContent() {
     let msg = "";
     if (theme === THEMES.PONGAL) {
       msg = "🌾 Thai Pongal\n\nThai Pongal seasonal theme has been successfully activated and the system is now running in this theme.";
+    } else if (theme === THEMES.VESAK) {
+      msg = "🏮 Vesak\n\nVesak seasonal theme has been successfully activated and the system is now running in this theme.";
     } else if (theme === THEMES.RAMADAN) {
       msg = "🌙 Ramadan\n\nRamadan seasonal theme has been successfully activated and the system is now running in this theme.";
     } else if (theme === THEMES.NEWYEAR) {
@@ -557,8 +560,19 @@ function AdminDashboardContent() {
     { value: THEMES.CHRISTMAS, label: "Christmas" },
     { value: THEMES.NEWYEAR, label: "New Year" },
     { value: THEMES.PONGAL, label: "Pongal" },
+    { value: THEMES.VESAK, label: "Vesak" },
     { value: THEMES.DEFAULT, label: "Default" },
   ];
+
+  const wrapperThemeStyle = theme === THEMES.VESAK
+    ? {
+        backgroundImage: `linear-gradient(rgba(245, 248, 255, 0.9), rgba(245, 248, 255, 0.9)), url(${vesakBackground})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+      }
+    : undefined;
   // Close dropdown on outside click
   React.useEffect(() => {
     if (!themeMenuOpen) return;
@@ -693,7 +707,7 @@ function AdminDashboardContent() {
 
   // Dropdown background and theme UI logic retained natively
   return (
-    <div className={`admin-dashboard-wrapper theme-${theme} ${isAdminDarkMode ? 'theme-dark' : ''}`}>
+    <div className={`admin-dashboard-wrapper theme-${theme} ${isAdminDarkMode ? 'theme-dark' : ''}`} style={wrapperThemeStyle}>
       {/* Professional Sidebar Navigation */}
       <aside className="admin-sidebar shadow-lg">
         <div className="admin-sidebar-logo">

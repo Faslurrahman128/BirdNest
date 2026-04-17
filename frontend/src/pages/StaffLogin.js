@@ -11,7 +11,8 @@ const SEASONAL_GREETINGS = {
   [THEMES.RAMADAN]: "Ramadan Mubarak!",
   [THEMES.CHRISTMAS]: "Merry Christmas!",
   [THEMES.NEWYEAR]: "Happy New Year!",
-  [THEMES.PONGAL]: "Happy Pongal!"
+  [THEMES.PONGAL]: "Happy Pongal!",
+  [THEMES.VESAK]: "Happy Vesak!"
 };
 
 // --- Particle System ---

@@ -7,7 +7,8 @@ export const THEMES = {
   RAMADAN: "ramadan",
   CHRISTMAS: "christmas",
   NEWYEAR: "newyear",
-  PONGAL: "pongal"
+  PONGAL: "pongal",
+  VESAK: "vesak"
 };
 
 const ThemeContext = createContext();
@@ -47,6 +48,7 @@ export function ThemeProvider({ children }) {
     if (month === 12 && day >= 20) return THEMES.CHRISTMAS;
     if (month === 1 && day <= 7) return THEMES.NEWYEAR;
     if (month === 1 && day >= 10 && day <= 20) return THEMES.PONGAL;
+    if (month === 5 && day >= 10 && day <= 25) return THEMES.VESAK;
     return THEMES.DEFAULT;
   };
 
