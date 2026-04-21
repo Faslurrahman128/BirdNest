@@ -1,3 +1,4 @@
+import ServiceAgentLogin from './pages/ServiceAgentLogin.js';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "./ThemeContext";
@@ -40,6 +41,7 @@ import CustomerCareLogin from'./pages/CustomerCareLogin.js';
 import CustomerCareRegister from './pages/CustomerCareRegister.js';
 import CustomerCareDashboard from './pages/CustomerCareDashboard.js';
 import StaffDashboard from './pages/StaffDashboard.js';
+import InternalChat from './pages/InternalChat.js';
 
 function App() {
   return (
@@ -75,6 +77,7 @@ function App() {
             <Route path="/Terms" element={<Terms />} />
 
             <Route path="/register-service-provider" element={<RegisterServiceProvider />} />
+            <Route path="/service-agent-login" element={<ServiceAgentLogin />} />
             <Route path="/service-agent-dash" element={<ServiceAgentDashboard />} />
             <Route path="/service-provider-list" element={<ViewServiceProviders />} />
             <Route path="/service-provider-verify" element={<ViewVerifyList />} />
@@ -88,6 +91,7 @@ function App() {
             <Route path="/CustomerCareRegister" element={<CustomerCareRegister />} />
             <Route path="/CustomerCareDashboard" element={<CustomerCareDashboard />} />
             <Route path="/StaffDashboard" element={<StaffDashboard />} />
+            <Route path="/internal-chat" element={<InternalChat />} />
 
           </Routes>
         </div>

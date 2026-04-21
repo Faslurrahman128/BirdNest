@@ -3,9 +3,11 @@ import { ThemeProvider, useTheme, THEMES } from "../ThemeContext";
 import "../Componets/CSS/theme-decorations.css";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 import AppHeader from "../Componets/AppHeader";
 import "../Componets/CSS/admin-glass.css";
 import logo from "../Componets/assets/APPLOGO.png";
+import vesakBackground from "../assets/vesak.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -57,8 +59,35 @@ function AdminDashboardContent() {
 
   // Staff selection state for bulk actions
   const [selectedStaffIds, setSelectedStaffIds] = useState([]);
+  const [chatToasts, setChatToasts] = useState([]);
+  const [chatUnreadCount, setChatUnreadCount] = useState(() => Number(sessionStorage.getItem("adminChatUnreadCount") || 0));
 
   const token = sessionStorage.getItem("token");
+  const myId = sessionStorage.getItem("userId") || "";
+  const myRole = (sessionStorage.getItem("role") || sessionStorage.getItem("staffRole") || "").toLowerCase();
+
+  const resolveAuthContext = () => {
+    let resolvedId = myId;
+    let resolvedRole = myRole;
+
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (!resolvedId) resolvedId = payload?.id || "";
+        if (!resolvedRole) resolvedRole = (payload?.role || "").toLowerCase();
+      } catch (_) {}
+    }
+
+    return { resolvedId, resolvedRole };
+  };
+
+  const pushChatToast = (text) => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setChatToasts((prev) => [...prev.slice(-3), { id, text }]);
+    setTimeout(() => {
+      setChatToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3500);
+  };
 
   // Room fetch logic extracted for reuse
   const fetchRooms = async () => {
@@ -117,6 +146,35 @@ function AdminDashboardContent() {
     // eslint-disable-next-line
   }, [token]);
 
+  useEffect(() => {
+    if (!token) return;
+    const { resolvedId, resolvedRole } = resolveAuthContext();
+    if (resolvedRole !== "admin") return;
+
+    const socket = io("http://localhost:8070", {
+      auth: { token },
+      transports: ["websocket", "polling"],
+    });
+
+    socket.on("internal:new-message", (msg) => {
+      const receiverRole = (msg.receiverRole || "").toString().toLowerCase();
+      const toAdminById = resolvedId && String(msg.receiverId) === String(resolvedId);
+      const toAdminByRole = receiverRole === "admin";
+      if (!toAdminById && !toAdminByRole) return;
+      pushChatToast(`New message from ${msg.senderName}`);
+
+      setChatUnreadCount((prev) => {
+        const next = prev + 1;
+        sessionStorage.setItem("adminChatUnreadCount", String(next));
+        return next;
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [token, myId, myRole]);
+
   // Aggregate stats for the professional dashboard cards
   const summaryStats = {
     totalRooms: verifiedRooms.length + unverifiedRooms.length,
@@ -130,6 +188,12 @@ function AdminDashboardContent() {
     setActiveSection(section);
     setSelectedRoom(null); // Reset selected room when switching sections
     setRegistrationMessage(""); // Reset registration message
+  };
+
+  const handleOpenInternalChat = () => {
+    setChatUnreadCount(0);
+    sessionStorage.setItem("adminChatUnreadCount", "0");
+    navigate("/internal-chat");
   };
 
   const handleRoomClick = (room) => {
@@ -475,6 +539,8 @@ function AdminDashboardContent() {
     let msg = "";
     if (theme === THEMES.PONGAL) {
       msg = "🌾 Thai Pongal\n\nThai Pongal seasonal theme has been successfully activated and the system is now running in this theme.";
+    } else if (theme === THEMES.VESAK) {
+      msg = "🏮 Vesak\n\nVesak seasonal theme has been successfully activated and the system is now running in this theme.";
     } else if (theme === THEMES.RAMADAN) {
       msg = "🌙 Ramadan\n\nRamadan seasonal theme has been successfully activated and the system is now running in this theme.";
     } else if (theme === THEMES.NEWYEAR) {
@@ -494,8 +560,19 @@ function AdminDashboardContent() {
     { value: THEMES.CHRISTMAS, label: "Christmas" },
     { value: THEMES.NEWYEAR, label: "New Year" },
     { value: THEMES.PONGAL, label: "Pongal" },
+    { value: THEMES.VESAK, label: "Vesak" },
     { value: THEMES.DEFAULT, label: "Default" },
   ];
+
+  const wrapperThemeStyle = theme === THEMES.VESAK
+    ? {
+        backgroundImage: `linear-gradient(rgba(245, 248, 255, 0.9), rgba(245, 248, 255, 0.9)), url(${vesakBackground})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+      }
+    : undefined;
   // Close dropdown on outside click
   React.useEffect(() => {
     if (!themeMenuOpen) return;
@@ -630,7 +707,7 @@ function AdminDashboardContent() {
 
   // Dropdown background and theme UI logic retained natively
   return (
-    <div className={`admin-dashboard-wrapper theme-${theme} ${isAdminDarkMode ? 'theme-dark' : ''}`}>
+    <div className={`admin-dashboard-wrapper theme-${theme} ${isAdminDarkMode ? 'theme-dark' : ''}`} style={wrapperThemeStyle}>
       {/* Professional Sidebar Navigation */}
       <aside className="admin-sidebar shadow-lg">
         <div className="admin-sidebar-logo">
@@ -662,6 +739,36 @@ function AdminDashboardContent() {
           >
             <span className="admin-nav-icon">🛡️</span>
             <span>Staff Registration</span>
+          </button>
+
+          <button
+            className="admin-nav-item"
+            onClick={handleOpenInternalChat}
+          >
+            <span className="admin-nav-icon">💬</span>
+            <span>
+              Service Agent Chat
+              {chatUnreadCount > 0 && (
+                <span
+                  style={{
+                    marginLeft: 8,
+                    minWidth: 18,
+                    height: 18,
+                    borderRadius: 999,
+                    background: "#ef4444",
+                    color: "#fff",
+                    fontSize: 11,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 6px",
+                    fontWeight: 700,
+                  }}
+                >
+                  {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
+                </span>
+              )}
+            </span>
           </button>
         </nav>
 
@@ -1023,6 +1130,7 @@ function AdminDashboardContent() {
                       <tr>
                         <th>Guest House</th>
                         <th>Approval Date</th>
+                        <th>Approved By</th>
                         <th>Price</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -1034,6 +1142,11 @@ function AdminDashboardContent() {
                           <tr style={{ cursor: 'pointer' }} onClick={() => handleRoomClick(room)}>
                             <td style={{ fontWeight: 600 }}>{room.name || room.roomType}</td>
                             <td style={{ color: '#64748b' }}>{room.verifiedAt ? new Date(room.verifiedAt).toLocaleDateString() : '-'}</td>
+                            <td style={{ color: '#64748b' }}>
+                              {room.verifiedByName
+                                ? `${room.verifiedByName}${room.verifiedByRole ? ` (${room.verifiedByRole})` : ''}`
+                                : '-'}
+                            </td>
                             <td>Rs {room.price?.toLocaleString()}</td>
                             <td>
                               {room.rejected ? (
@@ -1046,7 +1159,7 @@ function AdminDashboardContent() {
                           </tr>
                           {selectedRoom?._id === room._id && (
                             <tr>
-                              <td colSpan="5" className="p-0">
+                              <td colSpan="6" className="p-0">
                                 {renderRoomDetails(room, false)}
                               </td>
                             </tr>
@@ -1438,6 +1551,35 @@ function AdminDashboardContent() {
           )}
         </div>
       </main>
+
+      <div
+        style={{
+          position: "fixed",
+          right: 16,
+          bottom: 16,
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          zIndex: 9999,
+        }}
+      >
+        {chatToasts.map((toast) => (
+          <div
+            key={toast.id}
+            style={{
+              background: "#0f172a",
+              color: "#fff",
+              padding: "10px 12px",
+              borderRadius: 10,
+              minWidth: 220,
+              boxShadow: "0 10px 30px rgba(2,6,23,0.35)",
+              fontSize: 13,
+            }}
+          >
+            {toast.text}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

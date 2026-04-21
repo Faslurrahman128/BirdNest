@@ -7,7 +7,7 @@
 
 /* === Sidebar Navigation === */
 .dashboard-menu {
-  width: 280px;
+  width: 210px;
   background: linear-gradient(to bottom, #2c3e50, #34495e);
   color: white;
   height: 100vh;
@@ -17,6 +17,9 @@
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   transition: all 0.3s ease;
+  border-top-right-radius: 32px;
+  border-bottom-right-radius: 32px;
+  overflow: hidden;
 }
 
 .dashboard-brand {
@@ -86,10 +89,11 @@
 
 /* === Content Area === */
 .content-container {
-  margin-left: 280px;
+  margin-left: 210px;
   padding: 30px;
-  width: calc(100% - 280px);
+  width: calc(100% - 210px);
   transition: all 0.3s ease;
+  margin-top: 62px; /* match admin header height */
 }
 
 .content-header {

@@ -191,6 +191,15 @@ function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cardVisible, setCardVisible] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetOtp, setResetOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState("");
+  const [resetMsgType, setResetMsgType] = useState("");
 
   const containerRef = useRef(null);
   const glowRef = useRef(null);
@@ -254,6 +263,11 @@ function AdminLogin() {
       setMessage(`Welcome back, ${response.data.username}!`);
       setAlertType("success");
       sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("userId", response.data.userId || "");
+      sessionStorage.setItem("role", "admin");
+      sessionStorage.setItem("staffRole", "Admin");
+      sessionStorage.setItem("staffName", response.data.username || "Admin");
+      sessionStorage.setItem("staffEmail", email);
       const isServiceAgent = email.toLowerCase().includes("service");
       const dashboardPath = isServiceAgent ? "/service-agent-dash" : "/Admindash";
       navigate(dashboardPath, {
@@ -264,6 +278,74 @@ function AdminLogin() {
       setAlertType("danger");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openForgotModal = () => {
+    setShowForgotModal(true);
+    setResetEmail(email || "");
+    setResetOtp("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setOtpSent(false);
+    setResetMsg("");
+    setResetMsgType("");
+  };
+
+  const handleRequestOtp = async () => {
+    if (!resetEmail) {
+      setResetMsg("Please enter your admin email.");
+      setResetMsgType("danger");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const res = await axios.post("http://localhost:8070/admin/forgot-password/request-otp", {
+        email: resetEmail,
+      });
+      setOtpSent(true);
+      setResetMsg(res.data.message || "OTP sent successfully.");
+      setResetMsgType("success");
+    } catch (err) {
+      setResetMsg(err?.response?.data?.error || "Failed to send OTP.");
+      setResetMsgType("danger");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetOtp || !newPassword || !confirmNewPassword) {
+      setResetMsg("Please fill OTP and new password fields.");
+      setResetMsgType("danger");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setResetMsg("New password and confirm password do not match.");
+      setResetMsgType("danger");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const res = await axios.post("http://localhost:8070/admin/forgot-password/reset", {
+        email: resetEmail,
+        otp: resetOtp,
+        newPassword,
+      });
+
+      setResetMsg(res.data.message || "Password reset successful.");
+      setResetMsgType("success");
+      setTimeout(() => {
+        setShowForgotModal(false);
+      }, 1200);
+    } catch (err) {
+      setResetMsg(err?.response?.data?.error || "Failed to reset password.");
+      setResetMsgType("danger");
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -412,7 +494,14 @@ function AdminLogin() {
               </button>
             </div>
             <div className="admin-forgot-row">
-              <Link to="/forgot-password" className="admin-forgot-link">Forgot password?</Link>
+              <button
+                type="button"
+                className="admin-forgot-link"
+                onClick={openForgotModal}
+                style={{ background: "none", border: "none", padding: 0 }}
+              >
+                Forgot password?
+              </button>
             </div>
           </div>
 
@@ -451,6 +540,131 @@ function AdminLogin() {
         </div>
       </div>
       </div>
+
+      {showForgotModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px'
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '460px',
+              borderRadius: '16px',
+              background: '#ffffff',
+              padding: '22px',
+              boxShadow: '0 25px 70px rgba(15,23,42,0.25)'
+            }}
+          >
+            <h3 style={{ marginTop: 0, marginBottom: '8px', color: '#1a237e' }}>Reset Admin Password</h3>
+            <p style={{ marginTop: 0, color: '#64748b', fontSize: '14px' }}>
+              Enter your admin email to get OTP, then set a new password.
+            </p>
+
+            <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px' }}>Admin Email</label>
+            <input
+              type="email"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+              placeholder="admin@birdnest.com"
+              style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', marginBottom: '10px' }}
+            />
+
+            {!otpSent && (
+              <button
+                type="button"
+                onClick={handleRequestOtp}
+                disabled={resetLoading}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: 'none', background: '#1a237e', color: '#fff', fontWeight: 700, marginBottom: '10px' }}
+              >
+                {resetLoading ? 'Sending OTP...' : 'Send OTP'}
+              </button>
+            )}
+
+            {otpSent && (
+              <>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px' }}>OTP</label>
+                <input
+                  type="text"
+                  value={resetOtp}
+                  onChange={(e) => setResetOtp(e.target.value)}
+                  placeholder="Enter 6-digit OTP"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', marginBottom: '10px' }}
+                />
+
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px' }}>New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimum 8 characters"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', marginBottom: '10px' }}
+                />
+
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '6px' }}>Confirm New Password</label>
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  placeholder="Re-enter new password"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', marginBottom: '10px' }}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleResetPassword}
+                  disabled={resetLoading}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: 'none', background: '#0f766e', color: '#fff', fontWeight: 700, marginBottom: '10px' }}
+                >
+                  {resetLoading ? 'Resetting...' : 'Verify OTP & Reset Password'}
+                </button>
+              </>
+            )}
+
+            {resetMsg && (
+              <div
+                style={{
+                  borderRadius: '10px',
+                  padding: '10px 12px',
+                  marginBottom: '10px',
+                  background: resetMsgType === 'success' ? '#dcfce7' : '#fee2e2',
+                  color: resetMsgType === 'success' ? '#166534' : '#991b1b',
+                  fontSize: '14px',
+                  fontWeight: 600
+                }}
+              >
+                {resetMsg}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={handleRequestOtp}
+                disabled={resetLoading}
+                style={{ flex: 1, padding: '9px 12px', borderRadius: '10px', border: '1px solid #94a3b8', background: '#fff', color: '#334155', fontWeight: 700 }}
+              >
+                Resend OTP
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                style={{ flex: 1, padding: '9px 12px', borderRadius: '10px', border: '1px solid #94a3b8', background: '#fff', color: '#334155', fontWeight: 700 }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
