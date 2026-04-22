@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../Componets/CSS/MessagePage.css';
 import { Send } from "lucide-react";
-import logo from "../Componets/assets/unistaylogo.png";
+import logo from "../Componets/assets/APPLOGO.png";
 
 const MessagePage = () => {
   const location = useLocation();
