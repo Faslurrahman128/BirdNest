@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../Componets/assets/unistaylogo.png';
+import logo from '../Componets/assets/APPLOGO.png';
 import '../Componets/CSS/TermsCondi.css';
 import styles from "../Componets/CSS/dash.css"; // Import CSS styles
 
