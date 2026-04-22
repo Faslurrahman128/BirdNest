@@ -542,6 +542,9 @@ app.use("/Ticket", ticketRoutes);
 const internalChatRoutes = require("./Routes/internalChatRoute");
 app.use("/internal-chat", internalChatRoutes);
 
+const aiRoutes = require("./Routes/aiRoute");
+app.use("/ai", aiRoutes);
+
 // Error handling for unhandled routes
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
