@@ -4,8 +4,9 @@ import ramadanMoon from "../assets/ramadan-moon.jpg";
 import ramadanLantern from "../assets/ramadan-lantern.jpg";
 import fireworkIcon from "../assets/firework-icon.png";
 import pongalImg from "../assets/thaipongal.png";
-// import capAsset from '../assets/cap.png';
-// import giftAsset from '../assets/gift.png';
+import vesakImg from "../assets/vesak.png";
+import capAsset from '../assets/cap.png';
+import giftAsset from '../assets/gift.png';
 import treeAsset from '../assets/tree.png';
 import { useTheme, THEMES } from "../ThemeContext";
 import "./CSS/AppHeader.css";
@@ -37,14 +38,13 @@ const AppHeader = ({
   const showTree = theme === THEMES.CHRISTMAS;
 
   return (
-    <div style={{ width: '100%', boxSizing: 'border-box', zIndex: 10, padding: 0, flexShrink: 0 }}>
-      <header className="admin-glass-header admin-glass-header-left">
+    <header className="admin-glass-header admin-glass-header-left">
         <div className="admin-glass-header-content-left" style={{ position: 'relative' }}>
           <div style={{ position: 'relative', display: 'inline-block' }}>
             <img src={logo} alt="LOGO" className="admin-glass-logo" />
-            {/* {showCap && (
+            {showCap && (
               <img src={capAsset} alt="Christmas Cap" className="cap-on-logo" />
-            )} */}
+            )}
             {/* Ramadan Lantern under logo, only in Ramadan theme */}
             {theme === THEMES.RAMADAN && (
               <img
@@ -110,12 +110,15 @@ const AppHeader = ({
                 {theme === THEMES.PONGAL && (
                   <img src={pongalImg} alt="Pongal" style={{ width: 68, height: 68, position: 'relative', top: '-6px' }} />
                 )}
+                {theme === THEMES.VESAK && (
+                  <img src={vesakImg} alt="Vesak" style={{ width: 64, height: 64, objectFit: 'contain', filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.25))' }} />
+                )}
                 {showTree && (
                   <img src={treeAsset} alt="Tree" style={{ width: 50, height: 50, objectFit: 'contain', filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.2))' }} />
                 )}
-                {/* {showGift && (
+                {showGift && (
                   <img src={giftAsset} alt="Gift" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))' }} />
-                )} */}
+                )}
               </div>
             </span>
             <span
@@ -136,7 +139,6 @@ const AppHeader = ({
           {/* Logout button removed as requested */}
         </div>
       </header>
-    </div>
   );
 };
 

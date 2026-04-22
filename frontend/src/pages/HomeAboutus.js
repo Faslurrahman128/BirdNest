@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from "../Componets/CSS/dash.css"; // Import CSS styles
 import { useNavigate } from 'react-router-dom';
-import logo from '../Componets/assets/unistaylogo.png';
+import logo from '../Componets/assets/APPLOGO.png';
 import '../Componets/CSS/AboutUs.css'
 
 import instagram from '../Componets/assets/Instagram.webp';

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../Componets/CSS/CustomerServiceProvider.css";
-import logo from "../Componets/assets/unistaylogo.png";
+import logo from "../Componets/assets/APPLOGO.png";
 
 // Import images for each service type
 import plumberImg from "../Componets/assets/plumber.jpg";
