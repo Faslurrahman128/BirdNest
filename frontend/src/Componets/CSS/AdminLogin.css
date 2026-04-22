@@ -1,561 +1,91 @@
-/* ========================================================
-   AdminLogin.css  –  Dark System Control Theme
-   ======================================================== */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
-
-/* ── Root ─────────────────────────────────────────────── */
-.admin-login-root {
-  position: relative;
-  width: 100vw;
-  min-height: 100vh;
-  overflow: hidden;
-  background: #080a10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Inter', sans-serif;
-  cursor: none;
-}
-
-/* ── Particle Canvas ────────────────────────────────────── */
-.admin-particle-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* ── Mouse Spotlight (amber/gold) ───────────────────────── */
-.admin-spotlight {
-  position: absolute;
-  width: 520px;
-  height: 520px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 2;
-  translate: -50% -50%;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  background: radial-gradient(
-    circle,
-    rgba(245, 158, 11, 0.18) 0%,
-    rgba(180, 83, 9,  0.10) 40%,
-    transparent 70%
-  );
-  filter: blur(3px);
-}
-
-/* ── Ambient Orbs ───────────────────────────────────────── */
-.admin-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  z-index: 1;
-  pointer-events: none;
-  animation: admin-orb-float 14s ease-in-out infinite;
-}
-
-.admin-orb-1 {
-  width: 480px;
-  height: 480px;
-  background: radial-gradient(circle, rgba(180,83,9,0.28), transparent 70%);
-  top: -160px;
-  right: -120px;
-  animation-delay: 0s;
-}
-
-.admin-orb-2 {
-  width: 380px;
-  height: 380px;
-  background: radial-gradient(circle, rgba(245,158,11,0.18), transparent 70%);
-  bottom: -130px;
-  left: -80px;
-  animation-delay: -5s;
-}
-
-.admin-orb-3 {
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle, rgba(120,53,15,0.22), transparent 70%);
-  top: 35%;
-  right: 18%;
-  animation-delay: -9s;
-}
-
-@keyframes admin-orb-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(-30px, 45px) scale(1.07); }
-  66%       { transform: translate(25px, -30px) scale(0.94); }
-}
-
-/* ── Background Gears ───────────────────────────────────── */
-.admin-bg-gear {
-  position: absolute;
-  z-index: 1;
-  pointer-events: none;
-  filter: sepia(1) saturate(0.4) brightness(0.6);
-}
-
-@keyframes admin-gear-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-@keyframes admin-gear-spin-ccw {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(-360deg); }
-}
-
-/* ── Hint Text ──────────────────────────────────────────── */
-.admin-hint {
-  position: absolute;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: rgba(255, 255, 255, 0.28);
-  font-size: 0.85rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  animation: admin-hint-pulse 3s ease-in-out infinite;
-  pointer-events: none;
-  user-select: none;
-  font-family: 'Share Tech Mono', monospace;
-}
-
-.admin-hint-icon {
-  font-size: 1.3rem;
-  color: rgba(245, 158, 11, 0.55);
-  animation: admin-gear-spin 4s linear infinite;
-  display: inline-block;
-}
-
-@keyframes admin-hint-pulse {
-  0%, 100% { opacity: 0.4; }
-  50%       { opacity: 1; }
-}
-
-/* ── Login Card ─────────────────────────────────────────── */
-.admin-card {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  max-width: 440px;
-  margin: 2rem;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border-radius: 24px;
-  border: 1px solid rgba(245, 158, 11, 0.12);
-  padding: 2.8rem 2.5rem 2rem;
-  box-shadow:
-    0 4px 30px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  opacity: 0;
-  transform: perspective(900px) scale(0.92) translateY(28px);
-  transition:
-    opacity 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 0.15s ease-out,
-    box-shadow 0.4s ease,
-    border-color 0.4s ease;
-}
-
-.admin-card--visible {
-  opacity: 1;
-  transform: perspective(900px) scale(1) translateY(0);
-}
-
-.admin-card:hover {
-  border-color: rgba(245, 158, 11, 0.3);
-  box-shadow:
-    0 8px 50px rgba(180, 83, 9, 0.3),
-    0 0 80px rgba(245, 158, 11, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
-}
-
-/* Glowing border trace */
-.admin-card-glow-border {
-  position: absolute;
-  inset: -1.5px;
-  border-radius: 25px;
-  z-index: -1;
-  background: linear-gradient(
-    135deg,
-    rgba(245,158,11,0.6),
-    rgba(180,83,9,0.4),
-    transparent 50%,
-    rgba(234,179,8,0.3)
-  );
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
-}
-
-.admin-card:hover .admin-card-glow-border {
-  opacity: 0.7;
-}
-
-/* ── Card Header ────────────────────────────────────────── */
-.admin-card-header {
-  text-align: center;
-  margin-bottom: 1.8rem;
-}
-
-.admin-logo-ring {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  background: rgba(245, 158, 11, 0.08);
-  border-radius: 50%;
-  border: 1.5px solid rgba(245, 158, 11, 0.25);
-  margin-bottom: 1rem;
-  position: relative;
-}
-
-.admin-logo-ring::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1px dashed rgba(245, 158, 11, 0.25);
-  animation: admin-gear-spin 20s linear infinite;
-}
-
-.admin-logo-gear {
-  animation: admin-gear-spin 6s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
-}
-
-.admin-card-title {
-  font-size: 1.9rem;
-  font-weight: 700;
-  margin: 0 0 0.35rem;
-  background: linear-gradient(135deg, #fde68a, #fbbf24, #d97706);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.02em;
-}
-
-.admin-card-subtitle {
-  color: rgba(255, 255, 255, 0.32);
-  font-size: 0.85rem;
-  margin: 0 0 0.9rem;
-  letter-spacing: 0.04em;
-  font-family: 'Share Tech Mono', monospace;
-}
-
-/* Access badge */
-.admin-access-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  border-radius: 20px;
-  padding: 3px 12px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  color: rgba(251, 191, 36, 0.8);
-  font-family: 'Share Tech Mono', monospace;
-}
-
-.admin-access-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 6px #22c55e;
-  animation: admin-dot-blink 1.5s ease-in-out infinite;
-}
-
-@keyframes admin-dot-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.3; }
-}
-
-/* ── Form ───────────────────────────────────────────────── */
-.admin-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.15rem;
-}
-
-.admin-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.admin-label {
-  font-size: 0.77rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.42);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-family: 'Share Tech Mono', monospace;
-}
-
-.admin-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.admin-input-icon {
-  position: absolute;
-  left: 13px;
-  color: rgba(245, 158, 11, 0.55);
-  display: flex;
-  align-items: center;
-  pointer-events: none;
-  transition: color 0.3s;
-}
-
-.admin-input {
-  width: 100%;
-  padding: 0.82rem 1rem 0.82rem 2.7rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 11px;
-  color: #fef3c7;
-  font-size: 0.95rem;
-  font-family: 'Inter', sans-serif;
-  outline: none;
-  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
-}
-
-.admin-input::placeholder {
-  color: rgba(255, 255, 255, 0.18);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 0.88rem;
-}
-
-.admin-input:focus {
-  border-color: rgba(245, 158, 11, 0.5);
-  background: rgba(245, 158, 11, 0.06);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1), 0 0 20px rgba(245, 158, 11, 0.08);
-}
-
-.admin-input-wrapper:focus-within .admin-input-icon {
-  color: rgba(245, 158, 11, 1);
-}
-
-.admin-toggle-pw {
-  position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.25);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  transition: color 0.2s;
-}
-
-.admin-toggle-pw:hover {
-  color: rgba(245, 158, 11, 0.9);
-}
-
-.admin-forgot-row {
-  text-align: right;
-  margin-top: 3px;
-}
-
-.admin-forgot-link {
-  font-size: 0.8rem;
-  color: rgba(245, 158, 11, 0.55);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.admin-forgot-link:hover {
-  color: #fbbf24;
-}
-
-/* ── Alert ──────────────────────────────────────────────── */
-.admin-alert {
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-  font-size: 0.87rem;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.admin-alert--success {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #86efac;
-}
-
-.admin-alert--danger {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.28);
-  color: #fca5a5;
-}
-
-/* ── Submit Button ──────────────────────────────────────── */
-.admin-btn {
-  position: relative;
-  margin-top: 0.3rem;
-  padding: 0.9rem 1.5rem;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-  overflow: hidden;
-  background: linear-gradient(135deg, #b45309, #d97706, #f59e0b);
-  color: #1c1009;
-  letter-spacing: 0.03em;
-  transition: transform 0.2s, box-shadow 0.3s, opacity 0.2s;
-}
-
-.admin-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-.admin-btn:hover:not(:disabled)::before {
-  opacity: 1;
-}
-
-.admin-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow:
-    0 8px 28px rgba(245, 158, 11, 0.45),
-    0 0 40px rgba(245, 158, 11, 0.2);
-}
-
-.admin-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.admin-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.admin-btn-content,
-.admin-btn-loading {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-weight: 700;
-}
-
-.admin-btn-gear {
-  animation: admin-gear-spin 3s linear infinite;
-  opacity: 0.7;
-  transition: opacity 0.3s;
-}
-
-.admin-btn:hover .admin-btn-gear {
-  opacity: 1;
-  animation-duration: 1s;
-}
-
-.admin-btn-gear-spin {
-  animation: admin-gear-spin 0.6s linear infinite;
-}
-
-/* ── Card Footer ────────────────────────────────────────── */
-.admin-card-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.28);
-}
-
-.admin-footer-link {
-  color: #fbbf24;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.admin-footer-link:hover {
-  color: #fde68a;
-  text-decoration: underline;
-}
-
-/* ── Security Label ─────────────────────────────────────── */
-.admin-security-label {
-  margin-top: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.18);
-  font-family: 'Share Tech Mono', monospace;
-  letter-spacing: 0.05em;
-}
-
-.admin-security-label svg {
-  color: rgba(245, 158, 11, 0.35);
-}
-
-/* ── Custom Cursor ──────────────────────────────────────── */
-.admin-login-root {
-  cursor: none;
-}
-
-.admin-login-root * {
-  cursor: none !important;
-}
-
-/* Gear cursor element */
-.admin-cursor-gear {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 28px;
-  height: 28px;
-  pointer-events: none;
-  z-index: 99999;
-  translate: -50% -50%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
-  animation: admin-gear-spin 3s linear infinite;
-}
-
-.admin-cursor-gear.spinning {
-  animation-duration: 0.4s;
-}
-
-.admin-cursor-gear svg {
-  width: 100%;
-  height: 100%;
-}
-
-/* ── Responsive ─────────────────────────────────────────── */
-@media (max-width: 600px) {
-  .admin-card {
-    padding: 2rem 1.3rem 1.5rem;
-    margin: 1rem;
+/* AdminLogin.css */
+
+/* General Body Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
   }
-  .admin-card-title {
-    font-size: 1.5rem;
+  
+  
+  /* Login Container Styles */
+  .Login-container {
+    background-color: #ffffff;
+    width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(100, 2, 2, 0.2);
+    border-radius: 8px;
   }
-  .admin-bg-gear {
-    display: none;
+  
+  .heading {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #9b0a0a;
+    margin-bottom: 20px;
   }
-}
+  
+  /* Form Styles */
+  .AdminLoginform-label {
+    font-weight: bold;
+    color: #5e3434;
+  }
+  
+  .AdminLoginform-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    margin-top: 5px;
+  }
+  
+  .AdminLoginform-control:focus {
+    border-color: #db3434;
+    outline: none;
+    box-shadow: 0 0 5px rgba(230, 96, 96, 0.462);
+  }
+  
+  /* Button Styles */
+  .AdminLoginbtn {
+    background-color: #db3434;
+    color: #ffffff;
+    border: none;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .AdminLoginbtn:hover {
+    background-color: #b92929;
+  }
+  
+  /* Alert Styles */
+  .alert {
+    font-size: 0.9rem;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .alert-success {
+    background-color: #2ecc71;
+    color: #ffffff;
+  }
+  
+  .alert-danger {
+    background-color: #e74c3c;
+    color: #ffffff;
+  }
+  
+  /* Link Styles */
+  .text-primary {
+    color: #3498db;
+    text-decoration: none;
+  }
+  
+  .text-primary:hover {
+    text-decoration: underline;
+  }
+  

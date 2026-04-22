@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import '../Componets/CSS/RegisterServiceProvider.css';
-import logo from "../Componets/assets/APPLOGO.png";
+import logo from "../Componets/assets/unistaylogo.png";
 
 function RegisterServiceProvider() {
   const [name, setName] = useState("");

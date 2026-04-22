@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../Componets/CSS/BookingForm.css";
-import logo from "../Componets/assets/APPLOGO.png";
+import logo from "../Componets/assets/unistaylogo.png";
 function BookForm() {
   const location = useLocation();
   const navigate = useNavigate();

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"; // Navigation hook
 import styles from "../Componets/CSS/dash.css"; // Import CSS styles
 import "bootstrap/dist/css/bootstrap.min.css"; // Bootstrap for styling
 
-import logo from "../Componets/assets/APPLOGO.png";
+import logo from "../Componets/assets/unistaylogo.png";
 
 import instagram from '../Componets/assets/Instagram.webp';
 import facebook from '../Componets/assets/facebook.png';
