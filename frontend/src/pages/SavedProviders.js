@@ -13,7 +13,7 @@ import mechanicImg from "../Componets/assets/mechanic.jpg";
 import painterImg from "../Componets/assets/painter.jpg";
 import masonImg from "../Componets/assets/mason.jpg";
 import otherImg from "../Componets/assets/courier.jpg";
-import logo from "../Componets/assets/APPLOGO.png";
+import logo from "../Componets/assets/unistaylogo.png";
 
 function SavedProviders() {
   const [savedProviders, setSavedProviders] = useState([]);

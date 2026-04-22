@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from "../Componets/CSS/dash.css"; // Import CSS styles
 import { useNavigate } from 'react-router-dom';
-import logo from '../Componets/assets/APPLOGO.png';
+import logo from '../Componets/assets/unistaylogo.png';
 import '../Componets/CSS/AboutUs.css'
 
 import instagram from '../Componets/assets/Instagram.webp';
@@ -26,9 +26,8 @@ function AboutUs() {
         <div className="container">
           <div className="LOGO-container">
             <a className="nav-link text-warning" href="/">
-              <img src={logo} alt="Bird Nest Logo" width="130" />
+              <img src={logo} alt="LOGO" width="130" />
             </a>
-            <span className="admin-glass-app-name">Bird Nest</span>
           </div>
           <button
             className="navbar-toggler"

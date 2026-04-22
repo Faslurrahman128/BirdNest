@@ -6,7 +6,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import "../Componets/CSS/Profile.css";
 import UpdateCustomer from "./UpdateCustomer"; 
 import { Pencil, LogOut} from "lucide-react";
-import logo from "../Componets/assets/APPLOGO.png";
+import logo from "../Componets/assets/unistaylogo.png";
 
 function LoggedCustomer() {
   const [customer, setCustomer] = useState(null);
