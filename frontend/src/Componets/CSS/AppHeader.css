@@ -1,0 +1,108 @@
+.cap-on-logo {
+  position: absolute;
+  top: -10px;
+  right: -2px;
+  width: 32px;
+  height: 32px;
+  z-index: 100;
+  pointer-events: none;
+  transform: rotate(-15deg);
+}
+.admin-glass-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto; /* Centers the header */
+  background: linear-gradient(90deg, #232946 0%, #1a237e 100%);
+  border-radius: 0 0 35px 35px;
+  padding: 0.25rem 1.5rem;
+  box-shadow: 0 4px 15px rgba(30, 40, 80, 0.1);
+  position: relative;
+  z-index: 2;
+  width: 95%; /* Decreased width/length */
+  min-height: 62px; /* Decreased height */
+}
+
+.
+admin-glass-header-content-right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+/* Logout Button Styles */
+.admin-logout-btn {
+  background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1.3rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px 0 rgba(231,76,60,0.10);
+  cursor: pointer;
+  margin-left: 1.5rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  align-self: flex-end;
+}
+.admin-logout-btn:hover {
+  background: linear-gradient(90deg, #c0392b 0%, #e74c3c 100%);
+  box-shadow: 0 4px 16px 0 rgba(231,76,60,0.18);
+}
+.admin-glass-header-left {
+  display: flex;
+  justify-content: flex-start;
+}
+.admin-glass-header-content-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  max-width: none;
+}
+.admin-glass-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  margin-right: 1rem;
+  object-fit: contain;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.10);
+}
+.admin-glass-header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+.admin-glass-app-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f4f4f4;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 4px rgba(20, 20, 40, 0.18);
+}
+.admin-glass-tagline {
+  font-size: 0.7rem;
+  color: #b7cbe6;
+  margin-top: 0.05rem;
+  font-family: 'Segoe Script', 'Pacifico', 'Dancing Script', 'Caveat', cursive, sans-serif;
+  font-style: italic;
+  text-shadow: 0 1px 4px rgba(20, 20, 40, 0.13);
+}
+@media (max-width: 600px) {
+  .admin-glass-header-content-left {
+    padding: 0 0.5rem;
+  }
+  .admin-glass-header-title {
+    gap: 0.02rem;
+  }
+  .admin-glass-app-name {
+    font-size: 1.1rem;
+  }
+  .admin-glass-tagline {
+    font-size: 0.65rem;
+    margin-top: 0.01rem;
+    font-family: 'Segoe Script', 'Pacifico', 'Dancing Script', 'Caveat', cursive, sans-serif;
+    font-style: italic;
+    text-shadow: 0 1px 4px rgba(20, 20, 40, 0.13);
+  }
+}
