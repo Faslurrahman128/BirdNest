@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import '../Componets/CSS/AddRoom.css'
 import '../Componets/CSS/MyListings.css'
-import logo from "../Componets/assets/unistaylogo.png";
+import AppHeader from "../Componets/AppHeader";
 
 function AddRoom() {
   const [roomAddress, setRoomAddress] = useState("");
@@ -328,82 +328,64 @@ function AddRoom() {
     }
   };
 
+  const navLinks = [
+    { label: "🏠 Dashboard",    href: "/dash" },
+    { label: "📋 Post Add",     href: "/AddRoom",  active: true },
+    { label: "🏘️ Properties",   href: "/RoomList" },
+    { label: "🔧 Services",     href: "/service-providers" },
+    { label: "ℹ️ About Us",     href: "/AboutUS" },
+  ];
+
+  const accountLinks = [
+    { label: "👤 View Profile",      href: "/profile" },
+    { label: "🛏️ My Room",          href: "/MyRoom" },
+    { label: "📋 My Listings",       href: "/MyListings" },
+    { label: "🔑 Service Provider",  href: "/register-service-provider" },
+    { label: "🔖 Bookmarks",         href: "/saved-providers" },
+  ];
+
   return (
     <div className="listings-body">
-      {/* Navigation Bar */}
-      <nav className="navbar navbar-expand-lg">
-        <div className="container">
-          <div className="LOGO-container">
-            <a className="nav-link" href="/">
-              <img src={logo} alt="LOGO" width="130" />
-            </a>
-          </div>
-          
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarContent"
-            aria-controls="navbarContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          
-          <div className="collapse navbar-collapse" id="navbarContent">
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item">
-                <a className="nav-link" href="/dash">Dashboard</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/AddRoom">Post Add</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/RoomList">Properties</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/service-providers">Services</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/Userroom">About Us</a>
-              </li>
+      <AppHeader
+        appName="Bird Nest"
+        tagline="Find Your Perfect Space"
+        showLogout={!!sessionStorage.getItem("token")}
+        onLogout={handleLogout}
+      />
 
-              <li className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle"
-                  href="#"
-                  id="profileDropdown"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  Account
-                </a>
-                <ul className="dropdown-menu" aria-labelledby="profileDropdown">
-                  <li><a className="dropdown-item" href="/profile">View Profile</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/MyRoom">My Room</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/MyListings">My Listings</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/register-service-provider">Service Provider</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/saved-providers">Bookmarks</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  {sessionStorage.getItem("token") && (
-                    <li>
-                      <button className="dropdown-item" onClick={handleLogout}><strong>Logout</strong></button>
-                    </li>
-                  )}
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-      
-      <div className="Postadd-container-body">
+      <div className="addroom-layout">
+        {/* ── Sidebar ── */}
+        <aside className="addroom-sidebar">
+          <p className="sidebar-section-label">Navigation</p>
+          <nav className="sidebar-nav">
+            {navLinks.map(({ label, href, active }) => (
+              <Link
+                key={href}
+                to={href}
+                className={`sidebar-link${active ? " sidebar-link--active" : ""}`}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          <p className="sidebar-section-label" style={{ marginTop: "28px" }}>Account</p>
+          <nav className="sidebar-nav">
+            {accountLinks.map(({ label, href }) => (
+              <Link key={href} to={href} className="sidebar-link">
+                {label}
+              </Link>
+            ))}
+            {sessionStorage.getItem("token") && (
+              <button className="sidebar-link sidebar-logout" onClick={handleLogout}>
+                🚪 Logout
+              </button>
+            )}
+          </nav>
+        </aside>
+
+        {/* ── Main content ── */}
+        <div className="Postadd-container-body">
         <div className="Postadd-container">
           {/* Progress Indicator */}
           <div className="progress-indicator">
@@ -748,6 +730,7 @@ function AddRoom() {
               </button>
             </div>
           </form>
+        </div>
         </div>
       </div>
     </div>

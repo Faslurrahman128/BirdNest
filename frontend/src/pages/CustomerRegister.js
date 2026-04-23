@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import '../Componets/CSS/Register.css'
-import logo from "../Componets/assets/APPLOGO.png";
+import AppHeader from "../Componets/AppHeader";
 
 function Addmember() {
   const [name, setName] = useState("");
@@ -76,25 +76,10 @@ function Addmember() {
   return (
     <>
       <nav className="body">
-        <nav className="navbar navbar-expand-lg">
-          <div className="container">
-            <div className="LOGO-container">
-              <a className="nav-link text-warning" href="/">
-                <img src={logo} alt="LOGO" width="130" />
-              </a>
-            </div>
-            <a className="navbar-brand" href="/"></a>
-            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-              <span className="navbar-toggler-icon"></span>
-            </button>
-            <div className="collapse navbar-collapse" id="navbarContent">
-              <ul className="navbar-nav ms-auto">
-                <li className="nav-item"><a className="nav-link" href="/">Home</a></li>
-                <li className="nav-item"><a className="nav-link" href="/Login">Login</a></li>
-              </ul>
-            </div>
-          </div>
-        </nav>
+        <AppHeader
+          appName="Bird Nest"
+          tagline="Find Your Perfect Space"
+        />
         
         <div className="Registration-container-body">
           <div className="Registration-container">

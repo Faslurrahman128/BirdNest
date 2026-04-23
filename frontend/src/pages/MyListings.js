@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "../Componets/CSS/./MyListings.css";
+import "../Componets/CSS/AddRoom.css";
 import {
   Pencil, Trash2, Eye, RefreshCcw, Download,
   MapPin, Calendar, Tag, MessageSquare, CheckCircle, Home,
 } from "lucide-react";
-import logo from "../Componets/assets/APPLOGO.png";
 import jsPDF from "jspdf";
+import AppHeader from "../Componets/AppHeader";
 
 function LoggedCustomer() {
   const navigate = useNavigate();
@@ -172,6 +173,23 @@ function LoggedCustomer() {
     navigate("/chatpage", { state: { roomId, ownerName } });
   };
 
+  const navLinks = [
+    { label: "🏠 Dashboard", href: "/dash" },
+    { label: "📋 Post Add", href: "/AddRoom" },
+    { label: "🏘️ Properties", href: "/RoomList" },
+    { label: "🔧 Services", href: "/service-providers" },
+    { label: "ℹ️ About Us", href: "/AboutUs" },
+  ];
+
+  const accountLinks = [
+    { label: "👤 View Profile", href: "/profile" },
+    { label: "🛏️ My Room", href: "/MyRoom" },
+    { label: "📋 My Listings", href: "/MyListings", active: true },
+    { label: "🎟️ Add a Ticket", href: "/Ticket" },
+    { label: "🔑 Service Provider", href: "/register-service-provider" },
+    { label: "🔖 Bookmarks", href: "/saved-providers" },
+  ];
+
   const generatePDF = (room) => {
     const doc = new jsPDF();
     doc.setFillColor(6, 57, 112);
@@ -230,66 +248,62 @@ function LoggedCustomer() {
 
   return (
     <div className="listings-body">
+      <AppHeader
+        appName="Bird Nest"
+        tagline="Find Your Perfect Space"
+        showLogout={!!sessionStorage.getItem("token")}
+        onLogout={handleLogout}
+      />
 
-      {/* ── Navbar ── */}
-      <nav className="navbar navbar-expand-lg">
-        <div className="container">
-          <div className="LOGO-container">
-            <a className="nav-link" href="/"><img src={logo} alt="LOGO" width="130" /></a>
+      <div className="addroom-layout">
+        <aside className="addroom-sidebar">
+          <p className="sidebar-section-label">Navigation</p>
+          <nav className="sidebar-nav">
+            {navLinks.map(({ label, href }) => (
+              <Link key={href} to={href} className="sidebar-link">
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          <p className="sidebar-section-label" style={{ marginTop: "28px" }}>Account</p>
+          <nav className="sidebar-nav">
+            {accountLinks.map(({ label, href, active }) => (
+              <Link
+                key={href}
+                to={href}
+                className={`sidebar-link${active ? " sidebar-link--active" : ""}`}
+              >
+                {label}
+              </Link>
+            ))}
+            {sessionStorage.getItem("token") && (
+              <button className="sidebar-link sidebar-logout" onClick={handleLogout}>
+                🚪 Logout
+              </button>
+            )}
+          </nav>
+        </aside>
+
+        <div className="Postadd-container-body" style={{ flex: 1, minWidth: 0 }}>
+          {/* ── Header ── */}
+          <div className="listings-header">
+            <h2>My Listings</h2>
+            <p className="subtitle">Manage and review your posted properties</p>
           </div>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span className="navbar-toggler-icon" style={{ filter: "invert(1)" }}></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarContent">
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item"><a className="nav-link" href="/dash">Dashboard</a></li>
-              <li className="nav-item"><a className="nav-link" href="/AddRoom">Post Add</a></li>
-              <li className="nav-item"><a className="nav-link" href="/RoomList">Properties</a></li>
-              <li className="nav-item"><a className="nav-link" href="/service-providers">Services</a></li>
-              <li className="nav-item"><a className="nav-link" href="/Userroom">About Us</a></li>
-              <li className="nav-item dropdown">
-                <a className="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button"
-                  data-bs-toggle="dropdown" aria-expanded="false">Account</a>
-                <ul className="dropdown-menu" aria-labelledby="profileDropdown">
-                  <li><a className="dropdown-item" href="/profile">View Profile</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/MyRoom">My Room</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/MyListings">My Listings</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/register-service-provider">Service Provider</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><a className="dropdown-item" href="/saved-providers">Bookmarks</a></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  {sessionStorage.getItem("token") && (
-                    <li><button className="dropdown-item" onClick={handleLogout}><strong>Logout</strong></button></li>
-                  )}
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
 
-      {/* ── Header ── */}
-      <div className="listings-header">
-        <h2>My Listings</h2>
-        <p className="subtitle">Manage and review your posted properties</p>
-      </div>
+          {/* ── Alert ── */}
+          {message && (
+            <div className="listings-alert">
+              <div className={`alert alert-${alertType} alert-dismissible fade show`} role="alert">
+                {message}
+                <button type="button" className="btn-close" onClick={() => setMessage("")} />
+              </div>
+            </div>
+          )}
 
-      {/* ── Alert ── */}
-      {message && (
-        <div className="listings-alert">
-          <div className={`alert alert-${alertType} alert-dismissible fade show`} role="alert">
-            {message}
-            <button type="button" className="btn-close" onClick={() => setMessage("")} />
-          </div>
-        </div>
-      )}
-
-      {/* ── Cards ── */}
-      <div className="listings-container">
+          {/* ── Cards ── */}
+          <div className="listings-container">
         {rooms.length > 0 ? (
           rooms.map((room) => {
             const activeIdx = getActiveIndex(room._id);
@@ -462,6 +476,8 @@ function LoggedCustomer() {
             <p>Once you post a room, it will appear here.</p>
           </div>
         )}
+      </div>
+        </div>
       </div>
 
       {/* ── Buyer Info Modal ── */}
