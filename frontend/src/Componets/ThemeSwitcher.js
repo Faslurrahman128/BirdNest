@@ -5,7 +5,9 @@ const themeLabels = {
   [THEMES.DEFAULT]: "Default",
   [THEMES.RAMADAN]: "Ramadan",
   [THEMES.CHRISTMAS]: "Christmas",
-  [THEMES.NEWYEAR]: "New Year"
+  [THEMES.NEWYEAR]: "New Year",
+  [THEMES.PONGAL]: "Pongal",
+  [THEMES.VESAK]: "Vesak"
 };
 
 export default function ThemeSwitcher() {
@@ -22,6 +24,8 @@ export default function ThemeSwitcher() {
         <option value={THEMES.RAMADAN}>Ramadan</option>
         <option value={THEMES.CHRISTMAS}>Christmas</option>
         <option value={THEMES.NEWYEAR}>New Year</option>
+        <option value={THEMES.PONGAL}>Pongal</option>
+        <option value={THEMES.VESAK}>Vesak</option>
       </select>
     </div>
   );

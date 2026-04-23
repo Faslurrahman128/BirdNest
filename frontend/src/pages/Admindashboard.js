@@ -7,7 +7,6 @@ import { io } from "socket.io-client";
 import AppHeader from "../Componets/AppHeader";
 import "../Componets/CSS/admin-glass.css";
 import logo from "../Componets/assets/APPLOGO.png";
-import vesakBackground from "../assets/vesak.png";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -564,15 +563,7 @@ function AdminDashboardContent() {
     { value: THEMES.DEFAULT, label: "Default" },
   ];
 
-  const wrapperThemeStyle = theme === THEMES.VESAK
-    ? {
-        backgroundImage: `linear-gradient(rgba(245, 248, 255, 0.9), rgba(245, 248, 255, 0.9)), url(${vesakBackground})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "fixed",
-      }
-    : undefined;
+  const wrapperThemeStyle = undefined;
   // Close dropdown on outside click
   React.useEffect(() => {
     if (!themeMenuOpen) return;

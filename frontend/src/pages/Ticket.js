@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../Componets/CSS/Ticket.css";
-import logo from "../Componets/assets/APPLOGO.png";
+import AppHeader from "../Componets/AppHeader";
 
 function RaiseTicket() {
   const [issueTitle, setIssueTitle] = useState("");
@@ -61,28 +61,11 @@ function RaiseTicket() {
 
   return (
     <>
-      <div className="navbar navbar-expand-lg">
-        <div className="container">
-          <div className="LOGO-container">
-            <a className="nav-link text-warning" href="/">
-              <img src={logo} alt="LOGO" width="130" />
-            </a>
-          </div>
-          <div className="collapse navbar-collapse" id="navbarContent">
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item">
-                <a className="nav-link" href="/dash">Dashboard</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/RaiseTicket">Raise Ticket</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="/MyTickets">My Tickets</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <AppHeader
+        appName="Bird Nest"
+        tagline="Find Your Perfect Space"
+        showLogout={!!sessionStorage.getItem("token")}
+      />
 
       <div className="RaiseTicket-container">
         <h2 className="mt-1">Raise a Support Ticket</h2>

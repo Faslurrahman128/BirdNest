@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import '../Componets/CSS/CustomerLogin.css';
-import logo from "../Componets/assets/APPLOGO.png";
+import AppHeader from "../Componets/AppHeader";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,36 +58,10 @@ const Login = () => {
 
   return (
     <>
-      {/* Navigation Bar */}
-      <nav className="navbar navbar-expand-lg">
-        <div className="container">
-        <div className="LOGO-container">
-          <a className="nav-link text-warning" href="/">
-          <img src={logo} alt="LOGO" width="130" />
-          </a>
-          </div>
-       
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarContent"
-            aria-controls="navbarContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-
-          <div className="collapse navbar-collapse" id="navbarContent">
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item"><a className="nav-link" href="/">Home</a></li>
-              <li className="nav-item"><a className="nav-link" href="/register">Register</a></li>
-             
-            </ul>
-          </div>
-        </div>
-      </nav>
+      <AppHeader
+        appName="Bird Nest"
+        tagline="Find Your Perfect Space"
+      />
 
       <div className="CLogin-container-body">
         <div className="CLogin-container">

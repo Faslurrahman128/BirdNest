@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; 
 import "../Componets/CSS/Profile.css";
+import "../Componets/CSS/AddRoom.css";
+import AppHeader from "../Componets/AppHeader";
 import UpdateCustomer from "./UpdateCustomer"; 
 import { Pencil, LogOut} from "lucide-react";
 import logo from "../Componets/assets/APPLOGO.png";
@@ -55,81 +57,63 @@ function LoggedCustomer() {
 
   
 
+  const navLinks = [
+    { label: "🏠 Dashboard",    href: "/dash" },
+    { label: "📋 Post Add",     href: "/AddRoom" },
+    { label: "🏘️ Properties",   href: "/RoomList" },
+    { label: "🔧 Services",     href: "/service-providers" },
+    { label: "ℹ️ About Us",     href: "/AboutUS" },
+  ];
+
+  const accountLinks = [
+    { label: "👤 View Profile",      href: "/profile", active: true },
+    { label: "🛏️ My Room",          href: "/MyRoom" },
+    { label: "📋 My Listings",       href: "/MyListings" },
+    { label: "🎟️ Add a Ticket",      href: "/Ticket" },
+    { label: "🔑 Service Provider",  href: "/register-service-provider" },
+    { label: "🔖 Bookmarks",         href: "/saved-providers" },
+  ];
+
   return (
-    <>
-      <nav className="body">
-        <nav className="navbar navbar-expand-lg ">
-          <div className="container">
-            <div className="LOGO-container">
-              <a className="nav-link text-warning" href="/">
-                <img src={logo} alt="LOGO" width="130" />
-              </a>
-            </div>
-            <button
-              className="navbar-toggler"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#navbarContent"
-              aria-controls="navbarContent"
-              aria-expanded="false"
-              aria-label="Toggle navigation"
-            >
-              <span className="navbar-toggler-icon"></span>
-            </button>
+    <div className="listings-body">
+      <AppHeader
+        appName="Bird Nest"
+        tagline="Find Your Perfect Space"
+        showLogout={!!sessionStorage.getItem("token")}
+        onLogout={handleLogout}
+      />
 
-            <div className="collapse navbar-collapse" id="navbarContent">
-              <ul className="navbar-nav ms-auto">
-                <li className="nav-item">
-                  <a className="nav-link" href="/dash">Dashboard</a>
-                </li>
-                <li className="nav-item">
-                  <a className="nav-link" href="/AddRoom">Post Add</a>
-                </li>
-                <li className="nav-item">
-                  <a className="nav-link" href="/RoomList">Properties</a>
-                </li>
-                <li className="nav-item">
-                <a className="nav-link" href="/service-providers">Services</a>
-              </li>
-                <li className="nav-item">
-                  <a className="nav-link" href="/Userroom">About Us</a>
-                </li>
+      <div className="addroom-layout">
+        <aside className="addroom-sidebar">
+          <p className="sidebar-section-label">Navigation</p>
+          <nav className="sidebar-nav">
+            {navLinks.map(({ label, href, active }) => (
+              <Link
+                key={href}
+                to={href}
+                className={`sidebar-link${active ? " sidebar-link--active" : ""}`}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
 
-                <li className="nav-item dropdown">
-                  <a
-                    className="nav-link dropdown-toggle"
-                    href="#"
-                    id="profileDropdown"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Account
-                  </a>
-                  <ul className="dropdown-menu" aria-labelledby="profileDropdown">
-                    <li><a className="dropdown-item" href="/profile">View Profile</a></li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li><a className="dropdown-item" href="/MyRoom">My Room</a></li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li><a className="dropdown-item" href="/MyListings">My Listings</a></li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li><a className="dropdown-item" href="/register-service-provider">Service Provider</a></li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li><a className="dropdown-item" href="/saved-providers">Bookmarks</a></li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li>
-                      {sessionStorage.getItem("token") && (
-                        <li className="nav-item">
-                          <button className="dropdown-item" onClick={handleLogout}><strong>Logout</strong> <i className="fas fa-sign-out-alt"></i></button>
-                        </li>
-                      )}
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </nav>
+          <p className="sidebar-section-label" style={{ marginTop: "28px" }}>Account</p>
+          <nav className="sidebar-nav">
+            {accountLinks.map(({ label, href, active }) => (
+              <Link key={href} to={href} className={`sidebar-link${active ? " sidebar-link--active" : ""}`}>
+                {label}
+              </Link>
+            ))}
+            {sessionStorage.getItem("token") && (
+              <button className="sidebar-link sidebar-logout" onClick={handleLogout}>
+                🚪 Logout
+              </button>
+            )}
+          </nav>
+        </aside>
+
+        <div className="Postadd-container-body" style={{ flex: 1, minWidth: 0, paddingRight: '20px' }}>
 
         <div className="LoggedCustomer-container ">
           <div className="customer-details-container">
@@ -239,8 +223,9 @@ function LoggedCustomer() {
           </div>
         </div>
         {showModal && <div className="modal-backdrop fade show"></div>}
-      </nav>
-    </>
+        </div>
+      </div>
+    </div>
   );
 }
 
