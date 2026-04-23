@@ -4,8 +4,8 @@ import ramadanMoon from "../assets/ramadan-moon.jpg";
 import ramadanLantern from "../assets/ramadan-lantern.jpg";
 import fireworkIcon from "../assets/firework-icon.png";
 import pongalImg from "../assets/thaipongal.png";
-import capAsset from '../assets/cap.png';
-import giftAsset from '../assets/gift.png';
+// import capAsset from '../assets/cap.png';
+// import giftAsset from '../assets/gift.png';
 import treeAsset from '../assets/tree.png';
 import { useTheme, THEMES } from "../ThemeContext";
 import "./CSS/AppHeader.css";
@@ -42,9 +42,9 @@ const AppHeader = ({
         <div className="admin-glass-header-content-left" style={{ position: 'relative' }}>
           <div style={{ position: 'relative', display: 'inline-block' }}>
             <img src={logo} alt="LOGO" className="admin-glass-logo" />
-            {showCap && (
+            {/* {showCap && (
               <img src={capAsset} alt="Christmas Cap" className="cap-on-logo" />
-            )}
+            )} */}
             {/* Ramadan Lantern under logo, only in Ramadan theme */}
             {theme === THEMES.RAMADAN && (
               <img
@@ -113,9 +113,9 @@ const AppHeader = ({
                 {showTree && (
                   <img src={treeAsset} alt="Tree" style={{ width: 50, height: 50, objectFit: 'contain', filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.2))' }} />
                 )}
-                {showGift && (
+                {/* {showGift && (
                   <img src={giftAsset} alt="Gift" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))' }} />
-                )}
+                )} */}
               </div>
             </span>
             <span
