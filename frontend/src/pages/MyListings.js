@@ -304,179 +304,156 @@ function LoggedCustomer() {
 
           {/* ── Cards ── */}
           <div className="listings-container">
-        {rooms.length > 0 ? (
-          rooms.map((room) => {
-            const activeIdx = getActiveIndex(room._id);
-            return (
-              <div key={room._id} className="room-card-new">
-
-                {/* ── LEFT: Image Column ── */}
-                <div className="room-image-col">
-                  <div className="room-image-section">
-                    <img
-                      src={`http://localhost:8070${room.images[activeIdx]}`}
-                      alt={`Room view ${activeIdx + 1}`}
-                      className="main-img"
-                    />
-                    {/* Verification badge */}
-                    <span className={`badge-status ${room.isVerified ? "verified" : "unverified"}`}>
-                      {room.isVerified ? "✓ Verified" : "Pending"}
-                    </span>
-                    {/* Booked badge */}
-                    {room.isBooked && (
-                      <span className="badge-booked-overlay">Booked</span>
-                    )}
-                  </div>
-
-                  {/* Thumbnails */}
-                  {room.images.length > 1 && (
-                    <div className="room-thumbnails">
-                      {room.images.map((img, idx) => (
+            {rooms.length > 0 ? (
+              rooms.map((room) => {
+                const activeIdx = getActiveIndex(room._id);
+                return (
+                  <div key={room._id} className="room-card-new">
+                    {/* ── LEFT: Image Column ── */}
+                    <div className="room-image-col">
+                      <div className="room-image-section">
                         <img
-                          key={idx}
-                          src={`http://localhost:8070${img}`}
-                          alt={`Thumb ${idx + 1}`}
-                          className={`room-thumb ${idx === activeIdx ? "active" : ""}`}
-                          onClick={() => handleThumbnailClick(room._id, idx)}
+                          src={`http://localhost:8070${room.images[activeIdx]}`}
+                          alt={`Room view ${activeIdx + 1}`}
+                          className="main-img"
                         />
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* ── RIGHT: Details Column ── */}
-                <div className="room-details-col">
-
-                  {/* Title + Price */}
-                  <div className="room-card-top">
-                    <div className="room-title-block">
-                      <h3>{room.roomType}</h3>
-                      <div className="room-location">
-                        <MapPin size={12} />
-                        {room.roomAddress}, {room.roomCity}
+                        <span className={`badge-status ${room.isVerified ? "verified" : "unverified"}`}>
+                          {room.isVerified ? "✓ Verified" : "Pending"}
+                        </span>
+                        {room.isBooked && (
+                          <span className="badge-booked-overlay">Booked</span>
+                        )}
                       </div>
-                    </div>
-                    <div className="room-price-block">
-                      <div className="price">Rs {room.price.toLocaleString()}</div>
-                      <div className="per-month">per month</div>
-                    </div>
-                  </div>
 
-                  {/* Meta */}
-                  <div className="room-meta">
-                    <span className="room-meta-item">
-                      <Calendar size={12} />
-                      {new Date(room.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                    </span>
-                    <span className="room-meta-item">
-                      <Tag size={12} />
-                      {room.roomCity}
-                    </span>
-                    <span className="room-meta-item">
-                      <Home size={12} />
-                      {room.roomType}
-                    </span>
-                  </div>
-
-                  {/* Description */}
-                  {room.description && (
-                    <p className="room-description">{room.description}</p>
-                  )}
-
-                  <hr className="room-card-divider" />
-
-                  {/* Status Pills */}
-                  <div className="room-status-row">
-                    <span className={`status-pill ${room.isVerified ? "s-verified" : "s-unverified"}`}>
-                      {room.isVerified ? "Verified" : "Unverified — Staff will contact you"}
-                    </span>
-                    <span className={`status-pill ${room.isBooked ? "s-booked" : "s-not-booked"}`}>
-                      {room.isBooked ? "Booked" : "Not Booked"}
-                    </span>
-                    {room.isBookedconfirm && (
-                      <span className="status-pill s-confirmed">Booking Confirmed</span>
-                    )}
-                  </div>
-
-                  {/* Ratings */}
-                  {room.ratingHistory && room.ratingHistory.length > 0 && (
-                    <div className="rating-section">
-                      <h5>Rating History</h5>
-                      {room.ratingHistory.map((rating, index) => (
-                        <div key={index} className="rating-entry">
-                          <div className="buyer-name">{rating.buyerName}</div>
-                          <div className="stars-row">
-                            {Array.from({ length: 5 }, (_, i) => (
-                              <span key={i} className={`star ${i < rating.rating ? "filled" : "empty"}`}>★</span>
-                            ))}
-                          </div>
-                          {rating.description && <p className="rating-desc">{rating.description}</p>}
+                      {/* Thumbnails */}
+                      {room.images.length > 1 && (
+                        <div className="room-thumbnails">
+                          {room.images.map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={`http://localhost:8070${img}`}
+                              alt={`Thumb ${idx + 1}`}
+                              className={`room-thumb ${idx === activeIdx ? "active" : ""}`}
+                              onClick={() => handleThumbnailClick(room._id, idx)}
+                            />
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
 
-                  {/* Spacer pushes buttons to bottom */}
-                  <div className="room-spacer" />
+                    {/* ── RIGHT: Details Column (Sanduni's Version) ── */}
+                    <div className="room-details-col-sanduni">
+                      <h3><strong>{room.roomType}</strong> - {room.roomCity}</h3>
+                      <p><strong>Posted On</strong> - {new Date(room.createdAt).toLocaleString()}</p>
+                      <p className="room-price"><strong>Price</strong> Rs {room.price.toLocaleString()} / month</p>
+                      <p><strong>Description </strong>{room.description}</p>
+                      <p><strong>Address </strong>{room.roomAddress}</p>
+                      
+                      <p>
+                        <strong>Verification:</strong>{" "}
+                        {room.isVerified ? (
+                          <>
+                            <span className="badge bg-success">Verified</span>
+                            <span className="ms-2">Your room is listed.</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="badge bg-warning text-dark">Unverified</span>
+                            <span className="ms-2">Staff member will contact you to verify.</span>
+                          </>
+                        )}
+                      </p>
+                      <p>
+                        <strong>Booking:</strong>{" "}
+                        {room.isBooked ? (
+                          <span className="badge bg-success">Booked</span>
+                        ) : (
+                          <span className="badge bg-warning text-dark">Not Yet</span>
+                        )}
+                      </p>
 
-                  {/* ── Action Buttons ── */}
-                  <div className="room-actions">
-                    <button className="btn-action btn-edit" onClick={() => handleRoomUpdate(room)}
-                      disabled={room.isVerified} title="Edit Room">
-                      <Pencil size={13} /> Edit
-                    </button>
-
-                    <button className="btn-action btn-delete" onClick={() => deleteRoom(room._id)} title="Delete">
-                      <Trash2 size={13} /> Delete
-                    </button>
-
-                    <button className="btn-action btn-repost" onClick={() => handleRepostRoom(room._id)}
-                      disabled={!room.isBooked} title="Repost">
-                      <RefreshCcw size={13} /> Repost
-                    </button>
-
-                    {room.isBooked && (
-                      <>
-                        <button className="btn-action btn-view" onClick={() => handleViewBuyerInfo(room)} title="Buyer Info">
-                          <Eye size={13} /> Buyer Info
+                      <div className="d-flex justify-content-start mt-2">
+                        <button 
+                          className="btn me-1" 
+                          onClick={() => handleRoomUpdate(room)}
+                          title="Edit Room"
+                          disabled={room.isVerified}
+                        >
+                          <Pencil size={20} /> Edit
                         </button>
 
-                        <button className="btn-action btn-confirm" onClick={() => handlebVerification(room._id)}
-                          disabled={room.isBookedconfirm}>
-                          <CheckCircle size={13} />
-                          {room.isBookedconfirm ? "Confirmed" : "Confirm Booking"}
+                        <button 
+                          className="btn" 
+                          onClick={() => deleteRoom(room._id)}
+                          title="Delete Room"
+                        >
+                          <Trash2 size={20} /> Delete Room
                         </button>
 
-                        <button className="btn-action btn-message"
-                          onClick={() => handleGoToMessaging(room._id, room.buyerName)}>
-                          <MessageSquare size={13} /> Messages
-                          {room.chatHistory && room.chatHistory.length > 0 && (
-                            <span className="badge-dot">!</span>
-                          )}
+                        <button className="btn" onClick={() => handleRepostRoom(room._id)}
+                          disabled={!room.isBooked}
+                        >
+                          <RefreshCcw size={20} /> Repost
                         </button>
-                      </>
-                    )}
 
-                    {room.isBookedconfirm && (
-                      <button className="btn-action btn-download" onClick={() => generatePDF(room)}
-                        title="Download Receipt">
-                        <Download size={13} /> Download Receipt
-                      </button>
-                    )}
+                        {room.isBooked && (
+                          <>
+                            <button 
+                              className="btn btn-info" 
+                              onClick={() => handleViewBuyerInfo(room)}
+                              title="View Buyer Info"
+                            >
+                              <Eye size={20} /> 
+                            </button>
+
+                            <button
+                              onClick={() => handlebVerification(room._id)}
+                              className="btn btn-success"
+                              disabled={room.isBookedconfirm}
+                            >
+                              {room.isBookedconfirm ? "Booking Confirmed" : "Confirm Booking"}
+                            </button>
+
+                            <button
+                              className="btn btn-info mt-3 position-relative"
+                              onClick={() => handleGoToMessaging(room._id, room.buyerName)}
+                            >
+                              Messages
+                              {room.chatHistory && room.chatHistory.length > 0 && (
+                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                  !
+                                </span>
+                              )}
+                            </button>
+                          </>
+                        )}
+                      </div>
+
+                      {/* New PDF download button */}
+                      {room.isBookedconfirm && (
+                        <div className="mt-3 mb-3">
+                          <h6 className="dowloadtext mb-2">Download the Rental Confirmation from here</h6>
+                          <button 
+                            className="btn btn-primary" 
+                            onClick={() => generatePDF(room)} 
+                            title="Download Rental Confirmation PDF"
+                          >
+                            <Download size={20} className="me-2" /> Download Confirmation
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-
-                </div>
+                );
+              })
+            ) : (
+              <div className="empty-state">
+                <Home size={56} color="var(--border)" />
+                <h4>No listings yet</h4>
+                <p>Once you post a room, it will appear here.</p>
               </div>
-            );
-          })
-        ) : (
-          <div className="empty-state">
-            <Home size={56} color="var(--border)" />
-            <h4>No listings yet</h4>
-            <p>Once you post a room, it will appear here.</p>
+            )}
           </div>
-        )}
-      </div>
         </div>
       </div>
 
