@@ -2,19 +2,18 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import AppHeader from "../Componets/AppHeader";
 import "../Componets/CSS/ViewServiceProvider.css";
-import { FaHome, FaUserClock, FaUserCheck, FaClipboardList, FaSignOutAlt, FaSearch, FaDownload } from "react-icons/fa";
+import {
+  FaHome, FaUserClock, FaUserCheck, FaSignOutAlt,
+  FaSearch, FaDownload, FaIdCard, FaBriefcase, FaTrash, FaShieldAlt
+} from "react-icons/fa";
 
 function ViewVerifyList() {
-  const sidebarWidth = 210;
   const [verifiedProviders, setVerifiedProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    fetchVerifiedProviders();
-  }, []);
+  useEffect(() => { fetchVerifiedProviders(); }, []);
 
   const fetchVerifiedProviders = async () => {
     setLoading(true);
@@ -23,147 +22,128 @@ function ViewVerifyList() {
       setVerifiedProviders(response.data);
     } catch (error) {
       console.error("Error fetching verified providers", error);
-      
-      // Show error toast notification
-      const toastContainer = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'toast-notification error';
-      toast.innerHTML = 'Failed to load verified service providers.';
-      toastContainer.appendChild(toast);
-      
-      // Remove notification after 3 seconds
-      setTimeout(() => {
-        toast.remove();
-      }, 3000);
+      showToast("Failed to load verified service providers.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // Format date string to be more readable
+  const showToast = (message, type = "error") => {
+    const toastContainer = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.innerHTML = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  };
+
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
-  
-  // Filter verified providers based on search term
-  const filteredProviders = verifiedProviders.filter(provider => 
-    provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    provider.serviceType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    provider.serviceArea.toLowerCase().includes(searchTerm.toLowerCase())
+
+  const filteredProviders = verifiedProviders.filter(provider =>
+    provider.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    provider.serviceType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    provider.serviceArea?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    provider.nicNumber?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
-  // Export providers to CSV
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this verified service provider?")) return;
+    try {
+      await axios.delete(`http://localhost:8070/ServiceProvider/${id}`);
+      showToast("✅ Service Provider Deleted Successfully!", "success");
+      setVerifiedProviders(prev => prev.filter(provider => provider._id !== id));
+    } catch (error) {
+      console.error("Error deleting service provider", error);
+      showToast("Failed to delete service provider.", "error");
+    }
+  };
+
   const exportToCSV = () => {
     if (verifiedProviders.length === 0) return;
-    
-    // Convert data to CSV format
-    const headers = ["Name", "Email", "Phone", "Service Area", "Service Type", "Description", "Status", "Created At"];
-    
+    const headers = ["Name", "Email", "Phone", "NIC Number", "Experience", "Service Area", "Service Type", "Description", "Status", "Created At"];
     const csvData = verifiedProviders.map(provider => [
-      provider.name,
-      provider.email,
-      provider.phoneNumber,
-      provider.serviceArea,
-      provider.serviceType,
-      provider.description || "N/A",
-      provider.status,
-      formatDate(provider.createdAt)
+      provider.name, provider.email, provider.phoneNumber,
+      provider.nicNumber || "N/A",
+      provider.yearsOfExperience ? `${provider.yearsOfExperience} years` : "N/A",
+      provider.serviceArea, provider.serviceType,
+      provider.description || "N/A", provider.status, formatDate(provider.createdAt)
     ]);
-    
-    // Add headers at the beginning
     csvData.unshift(headers);
-    
-    // Convert to CSV string
     const csvString = csvData.map(row => row.join(",")).join("\n");
-    
-    // Create and download the file
     const blob = new Blob([csvString], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.setAttribute("hidden", "");
-    a.setAttribute("href", url);
-    a.setAttribute("download", "verified_providers.csv");
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    // Show success toast notification
-    const toastContainer = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification success';
-    toast.innerHTML = 'CSV Downloaded Successfully!';
-    toastContainer.appendChild(toast);
-    
-    // Remove notification after 3 seconds
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
+    a.href = url; a.download = "verified_providers.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showToast("CSV Downloaded Successfully!", "success");
   };
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', background: '#f8f9fa' }}>
-      <div
-        style={{
-          width: `calc(100% - ${sidebarWidth}px)`,
-          marginLeft: `${sidebarWidth}px`,
-          display: 'flex',
-          justifyContent: 'center'
-        }}
-      >
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
-          <AppHeader appName="Bird Nest" tagline="Service Agent Portal" />
-        </div>
-      </div>
-      <div style={{ width: '95%', maxWidth: '1400px', margin: '0 auto' }}>
-      <div className="dashboard-container" style={{ width: '100%', margin: '0', boxSizing: 'border-box' }}>
-      {/* Toast Container for Notifications */}
+    <div className="dashboard-container">
       <div id="toast-container"></div>
-      
-      {/* Sidebar Navigation */}
+
+      {/* Sidebar */}
       <nav className="dashboard-menu">
         <div className="dashboard-brand">
-          <h2>Service Agent Panel</h2>
+          <div className="brand-logo">
+            <div className="brand-icon">
+              <FaShieldAlt style={{ color: '#fff', fontSize: 18 }} />
+            </div>
+            <div>
+              <h2>Agent Panel</h2>
+              <p>Service Management</p>
+            </div>
+          </div>
         </div>
         <ul>
           <li>
-            <Link to="/service-agent-dash"><FaHome /> Dashboard</Link>
+            <Link to="/service-agent-dash"><FaHome /><span>Dashboard</span></Link>
           </li>
           <li>
-            <Link to="/service-provider-list"><FaUserClock /> Unverified Providers</Link>
+            <Link to="/service-provider-list"><FaUserClock /><span>Unverified Providers</span></Link>
           </li>
           <li className="active">
-            <Link to="/verified-providers"><FaUserCheck /> Verified Providers</Link>
-          </li>
-          <li className="logout">
-            <Link to="/"><FaSignOutAlt /> Logout</Link>
+            <Link to="/verified-providers"><FaUserCheck /><span>Verified Providers</span></Link>
           </li>
         </ul>
+        <div className="sidebar-footer">
+          <ul style={{ padding: 0 }}>
+            <li className="logout">
+              <Link to="/"><FaSignOutAlt /><span>Logout</span></Link>
+            </li>
+          </ul>
+        </div>
       </nav>
 
-      {/* Main Content */}
+      {/* Main */}
       <div className="content-container">
         <div className="content-header">
-          <h2>Verified Service Providers</h2>
+          <div className="header-left">
+            <h2>Verified Providers</h2>
+            <p className="dashboard-date">{filteredProviders.length} providers found</p>
+          </div>
           <div className="action-container">
             <div className="search-container">
-              <input 
-                type="text" 
-                className="search-input" 
-                placeholder="Search by name, service type or area..." 
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search by name, service, area or NIC..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <FaSearch className="search-icon" />
             </div>
             {verifiedProviders.length > 0 && (
-              <button className="btn btn-export" onClick={exportToCSV}>
+              <button className="btn btn-primary btn-export" onClick={exportToCSV}>
                 <FaDownload /> Export CSV
               </button>
             )}
           </div>
         </div>
-        
+
         {loading ? (
           <div className="loading-spinner">
             <div className="spinner"></div>
@@ -173,55 +153,108 @@ function ViewVerifyList() {
           <div className="row">
             {filteredProviders.length > 0 ? (
               filteredProviders.map((provider) => (
-                <div className="col-md-6 col-lg-4" key={provider._id}>
-                  <div className="card service-card">
+                <div className="col-md-6 col-lg-4 mb-4" key={provider._id}>
+                  <div className="service-card">
                     <div className="card-header">
-                      <h5 className="card-title">{provider.name}</h5>
+                      <div>
+                        <h5 className="card-title">{provider.name}</h5>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{provider.serviceType}</p>
+                      </div>
                       <span className="status-badge verified">Verified</span>
                     </div>
+
                     <div className="card-body">
                       <div className="info-group">
-                        <label>Email:</label>
+                        <label>Email</label>
                         <p>{provider.email}</p>
                       </div>
                       <div className="info-group">
-                        <label>Phone:</label>
+                        <label>Phone</label>
                         <p>{provider.phoneNumber}</p>
                       </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div className="info-group">
+                          <label><FaIdCard /> NIC Number</label>
+                          <p><strong>{provider.nicNumber || "N/A"}</strong></p>
+                        </div>
+                        <div className="info-group">
+                          <label><FaBriefcase /> Experience</label>
+                          <p><strong>{provider.yearsOfExperience ? `${provider.yearsOfExperience} yrs` : "N/A"}</strong></p>
+                        </div>
+                      </div>
                       <div className="info-group">
-                        <label>Service Area:</label>
+                        <label>Service Area</label>
                         <p>{provider.serviceArea}</p>
                       </div>
                       <div className="info-group">
-                        <label>Service Type:</label>
-                        <p>{provider.serviceType}</p>
-                      </div>
-                      <div className="info-group">
-                        <label>Description:</label>
+                        <label>Description</label>
                         <p className="description">{provider.description || "N/A"}</p>
                       </div>
                       <div className="info-group">
-                        <label>Created At:</label>
+                        <label>Joined</label>
                         <p>{formatDate(provider.createdAt)}</p>
                       </div>
+
+                      {/* NIC Images */}
+                      <div className="nic-images-section mt-3">
+                        <label>NIC Card Images</label>
+                        <div className="row g-2">
+                          <div className="col-6">
+                            <p className="small text-muted mb-1">Front</p>
+                            {provider.nicFrontImage ? (
+                              <a href={`http://localhost:8070/${provider.nicFrontImage.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer">
+                                <img src={`http://localhost:8070/${provider.nicFrontImage.replace(/\\/g, '/')}`} alt="NIC Front"
+                                  className="nic-image img-fluid"
+                                  style={{ maxHeight: 200, width: '100%', objectFit: 'cover', cursor: 'pointer' }}
+                                  onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/300x200?text=Not+Found"; }} />
+                              </a>
+                            ) : (
+                              <div style={{ border: '1px dashed var(--border-strong)', borderRadius: 8, padding: 20, textAlign: 'center', background: 'var(--surface-2)' }}>
+                                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>No Image</p>
+                              </div>
+                            )}
+                          </div>
+                          <div className="col-6">
+                            <p className="small text-muted mb-1">Back</p>
+                            {provider.nicBackImage ? (
+                              <a href={`http://localhost:8070/${provider.nicBackImage.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer">
+                                <img src={`http://localhost:8070/${provider.nicBackImage.replace(/\\/g, '/')}`} alt="NIC Back"
+                                  className="nic-image img-fluid"
+                                  style={{ maxHeight: 200, width: '100%', objectFit: 'cover', cursor: 'pointer' }}
+                                  onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/300x200?text=Not+Found"; }} />
+                              </a>
+                            ) : (
+                              <div style={{ border: '1px dashed var(--border-strong)', borderRadius: 8, padding: 20, textAlign: 'center', background: 'var(--surface-2)' }}>
+                                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>No Image</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="card-footer">
+                      <button className="btn btn-danger w-100" onClick={() => handleDelete(provider._id)}>
+                        <FaTrash /> Delete Profile
+                      </button>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="col-12 empty-state">
-                <div className="empty-state-container">
-                  <img src="/empty-state.svg" alt="No data" className="empty-state-img" />
-                  <h3>No verified providers found</h3>
-                  <p>There are no verified service providers at the moment.</p>
+              <div className="col-12">
+                <div className="empty-state">
+                  <div className="empty-state-container">
+                    <div className="empty-icon">✓</div>
+                    <h3>No verified providers found</h3>
+                    <p>There are no verified service providers at the moment.</p>
+                  </div>
                 </div>
               </div>
             )}
           </div>
         )}
       </div>
-    </div>
-    </div>
     </div>
   );
 }
