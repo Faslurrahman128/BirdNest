@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import logo from "../Componets/assets/unistaylogo.png";
+import AppHeader from "../Componets/AppHeader";
 import styles from "../Componets/CSS/dash.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import instagram from '../Componets/assets/Instagram.webp';
@@ -122,15 +122,15 @@ function HomePage() {
   return (
     <>
       <nav className="body">
-        {/* Navigation Bar and Welcome Section Combined */}
-        <div className="navbar navbar-expand-lg">
-          <div className="container">
-            <div className="LOGO-container">
-              <a className="nav-link text-warning" href="/">
-                <img src={logo} alt="LOGO" width="130" />
-              </a>
-            </div>
+        <AppHeader
+          appName="Bird Nest"
+          tagline="Find Your Perfect Space"
+          showLogout={false}
+        />
 
+        {/* Navigation Bar and Welcome Section Combined */}
+        <div className="navbar navbar-expand-lg" style={{ width: '95%', margin: '10px auto', borderRadius: '15px', position: 'relative', zIndex: 10 }}>
+          <div className="container">
             <button
               className="navbar-toggler"
               type="button"
@@ -143,7 +143,7 @@ function HomePage() {
               <span className="navbar-toggler-icon"></span>
             </button>
             <div className="collapse navbar-collapse" id="navbarContent">
-              <ul className="navbar-nav ms-auto">
+              <ul className="navbar-nav mx-auto">
                 <li className="nav-item">
                   <a className="nav-link" href="/">Home Page</a>
                 </li>
