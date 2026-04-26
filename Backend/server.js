@@ -26,13 +26,18 @@ const io = new Server(httpServer, {
 });
 app.set("io", io);
 
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+}));
+
 // Serve static files (images) from the 'uploads' folder (MUST be before any routes)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const PORT = process.env.PORT || 8070; // Fallback to 8070 if PORT is not defined
 
 // Middleware
-app.use(cors());
+
 app.use(bodyParser.json()); // Parse JSON payloads
 
 // MongoDB Connection URL (Ensure .env has MONGODB_URL and JWT_SECRET set)
@@ -220,6 +225,10 @@ const upload = multer({
 
 // Serve static files (images) from the 'uploads' folder (for legacy images)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.use("/uploads/nic", express.static(path.join(__dirname, "uploads", "nic")));
+
+
 
 
 // Email sending function
